@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "appId": "bdc4f0a9-ba16-474e-83a1-0a97bae761ec",
+  "appDisplayName": "My First Code App",
+  "region": "prod",
+  "environmentId": "a7db7e88-2e11-e90c-8428-aee0d3d5d217",
+  "description": "",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {
+    "d80af32d-c562-4986-8358-262ee4945530": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_office365users",
+      "displayName": "Office 365 Users",
+      "dataSources": [
+        "office365users"
+      ],
+      "dataSets": {}
+    },
+    "b5de7d42-5528-419f-9bac-aa4f6980a473": {
+      "id": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+      "displayName": "Microsoft Dataverse",
+      "dataSources": [
+        "commondataserviceforapps"
+      ],
+      "dataSets": {}
+    }
+  },
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "gwia_employee_details": {
+          "entitySetName": "cr8b3_gw_employee_detailses",
+          "logicalName": "cr8b3_gw_employee_details"
+        },
+        "gwia_teramind_reports": {
+          "entitySetName": "cr8b3_gwia_teramind_reports",
+          "logicalName": "cr8b3_gwia_teramind_report"
+        },
+        "auto_employee_details": {
+          "entitySetName": "cr8b3_auto_employee_detailses",
+          "logicalName": "cr8b3_auto_employee_details"
+        },
+        "gwia_employee_exceptions": {
+          "entitySetName": "cr8b3_gwia_employee_exceptionses",
+          "logicalName": "cr8b3_gwia_employee_exceptions"
+        },
+        "gwia_employee_status_masters": {
+          "entitySetName": "cr8b3_gwia_employee_status_masters",
+          "logicalName": "cr8b3_gwia_employee_status_master"
+        },
+        "gwia_emp_exception_parameter_masters": {
+          "entitySetName": "cr8b3_gwia_emp_exception_parameter_masters",
+          "logicalName": "cr8b3_gwia_emp_exception_parameter_master"
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
+}

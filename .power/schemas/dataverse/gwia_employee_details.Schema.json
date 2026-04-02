@@ -1,0 +1,1387 @@
+{
+  "name": "cr8b3_gw_employee_details",
+  "title": "gwia_employee_details",
+  "schema": {
+    "type": "array",
+    "items": {
+      "type": "object",
+      "x-ms-dataverse-entity": true,
+      "x-ms-dataverse-entityset": "cr8b3_gw_employee_detailses",
+      "x-ms-dataverse-primary-id": "cr8b3_gw_employee_detailsid",
+      "x-ms-dataverse-primary-name": "cr8b3_name",
+      "properties": {
+        "cr8b3_gw_active_status": {
+          "type": "string",
+          "title": "gw_active_status",
+          "x-ms-dataverse-attribute": "cr8b3_gw_active_status",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr8b3_gw_active_status",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "8e78ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_active_status",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr8b3_gw_active_statusname": {
+          "type": "string",
+          "title": "cr8b3_gw_active_statusname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_active_statusname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_active_statusName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_adhaar": {
+          "type": "string",
+          "title": "gw_Aadhaar",
+          "x-ms-dataverse-attribute": "cr8b3_gw_adhaar",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_Adhaar",
+          "maxLength": 100
+        },
+        "cr8b3_gw_attendance_type": {
+          "type": "string",
+          "title": "gw_attendance_type",
+          "x-ms-dataverse-attribute": "cr8b3_gw_attendance_type",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_attendance_type",
+          "enum": [
+            "Huddle",
+            "General"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "85e37a6c-020e-ef11-9f8a-000d3a5c4619",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_attendance_type",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_attendance_typename": {
+          "type": "string",
+          "title": "cr8b3_gw_attendance_typename",
+          "x-ms-dataverse-attribute": "cr8b3_gw_attendance_typename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_attendance_typeName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_cal_date_of_joining": {
+          "type": "string",
+          "title": "gw_Cal_Date_of_joining",
+          "x-ms-dataverse-attribute": "cr8b3_gw_cal_date_of_joining",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_Cal_Date_of_joining",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_confirmation_status": {
+          "type": "string",
+          "title": "gw_confirmation_status",
+          "x-ms-dataverse-attribute": "cr8b3_gw_confirmation_status",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_confirmation_status"
+        },
+        "cr8b3_gw_confirmation_statusname": {
+          "type": "string",
+          "title": "cr8b3_gw_confirmation_statusname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_confirmation_statusname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_confirmation_statusName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_contact_details": {
+          "type": "string",
+          "title": "gw_contact_details",
+          "x-ms-dataverse-attribute": "cr8b3_gw_contact_details",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_contact_details",
+          "maxLength": 100
+        },
+        "cr8b3_gw_country": {
+          "type": "string",
+          "title": "gw_country",
+          "x-ms-dataverse-attribute": "cr8b3_gw_country",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_country"
+        },
+        "cr8b3_gw_countryname": {
+          "type": "string",
+          "title": "cr8b3_gw_countryname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_countryname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_countryName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_date": {
+          "type": "string",
+          "title": "gw_date",
+          "x-ms-dataverse-attribute": "cr8b3_gw_date",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_date"
+        },
+        "cr8b3_gw_date_of_birth": {
+          "type": "string",
+          "title": "gw_date_of_birth",
+          "x-ms-dataverse-attribute": "cr8b3_gw_date_of_birth",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_date_of_birth"
+        },
+        "cr8b3_gw_date_of_joining": {
+          "type": "string",
+          "title": "gw_date_of_joining",
+          "x-ms-dataverse-attribute": "cr8b3_gw_date_of_joining",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_date_of_joining"
+        },
+        "cr8b3_gw_datetime": {
+          "type": "string",
+          "title": "gw_datetime",
+          "x-ms-dataverse-attribute": "cr8b3_gw_datetime",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_datetime"
+        },
+        "cr8b3_gw_department": {
+          "type": "string",
+          "title": "gw_department",
+          "x-ms-dataverse-attribute": "cr8b3_gw_department",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_department"
+        },
+        "cr8b3_gw_departmentname": {
+          "type": "string",
+          "title": "cr8b3_gw_departmentname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_departmentname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_departmentName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_designation": {
+          "type": "string",
+          "title": "gw_designation",
+          "x-ms-dataverse-attribute": "cr8b3_gw_designation",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_designation"
+        },
+        "cr8b3_gw_designationname": {
+          "type": "string",
+          "title": "cr8b3_gw_designationname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_designationname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_designationName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_emergency_contact_no": {
+          "type": "string",
+          "title": "gw_emergency_contact_number",
+          "x-ms-dataverse-attribute": "cr8b3_gw_emergency_contact_no",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_emergency_contact_no",
+          "maxLength": 100
+        },
+        "cr8b3_gw_emergency_contact_relationship": {
+          "type": "string",
+          "title": "gw_emergency_contact_relationship",
+          "x-ms-dataverse-attribute": "cr8b3_gw_emergency_contact_relationship",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_emergency_contact_relationship",
+          "maxLength": 100
+        },
+        "cr8b3_gw_emergency_name": {
+          "type": "string",
+          "title": "gw_emergency_name",
+          "x-ms-dataverse-attribute": "cr8b3_gw_emergency_name",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_emergency_name",
+          "maxLength": 100
+        },
+        "cr8b3_gw_employee_detailsid": {
+          "type": "string",
+          "title": "gw_Employee_details",
+          "x-ms-dataverse-attribute": "cr8b3_gw_employee_detailsid",
+          "x-ms-dataverse-type": "UniqueidentifierType",
+          "x-ms-schema-name": "cr8b3_gw_Employee_detailsId",
+          "x-ms-dataverse-primary-id": true,
+          "required": true,
+          "x-ms-keyType": "primary"
+        },
+        "cr8b3_gw_fathers_name": {
+          "type": "string",
+          "title": "gw_father's_name",
+          "x-ms-dataverse-attribute": "cr8b3_gw_fathers_name",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_fathers_name",
+          "maxLength": 100
+        },
+        "cr8b3_gw_gender": {
+          "type": "string",
+          "title": "gw_gender",
+          "x-ms-dataverse-attribute": "cr8b3_gw_gender",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_gender",
+          "enum": [
+            "Male",
+            "Female"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "9778ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_gender",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_gendername": {
+          "type": "string",
+          "title": "cr8b3_gw_gendername",
+          "x-ms-dataverse-attribute": "cr8b3_gw_gendername",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_genderName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_governement_id_2": {
+          "type": "string",
+          "title": "gw_Governement_ID_2",
+          "x-ms-dataverse-attribute": "cr8b3_gw_governement_id_2",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_Governement_ID_2",
+          "maxLength": 100
+        },
+        "cr8b3_gw_governement_id_number": {
+          "type": "string",
+          "title": "gw_Governement_ID_1",
+          "x-ms-dataverse-attribute": "cr8b3_gw_governement_id_number",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_governement_ID_number",
+          "maxLength": 100
+        },
+        "cr8b3_gw_highest_qualification": {
+          "type": "string",
+          "title": "gw_highest_qualification",
+          "x-ms-dataverse-attribute": "cr8b3_gw_highest_qualification",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_highest_qualification",
+          "maxLength": 100
+        },
+        "cr8b3_gw_holiday_type_id": {
+          "type": "string",
+          "title": "gw_holiday_type_id",
+          "x-ms-dataverse-attribute": "cr8b3_gw_holiday_type_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_holiday_type_id"
+        },
+        "cr8b3_gw_holiday_type_idname": {
+          "type": "string",
+          "title": "cr8b3_gw_holiday_type_idname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_holiday_type_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_holiday_type_idName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_is_autoagent": {
+          "type": "string",
+          "title": "gw_is_autoagent",
+          "x-ms-dataverse-attribute": "cr8b3_gw_is_autoagent",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr8b3_gw_is_autoagent",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "152e1cc6-8303-ef11-a1ff-000d3a5c4619",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_is_autoagent",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr8b3_gw_is_autoagentname": {
+          "type": "string",
+          "title": "cr8b3_gw_is_autoagentname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_is_autoagentname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_is_autoagentName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_last_working_day": {
+          "type": "string",
+          "title": "gw_last_working_day",
+          "x-ms-dataverse-attribute": "cr8b3_gw_last_working_day",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_last_working_day"
+        },
+        "cr8b3_gw_lob": {
+          "type": "string",
+          "title": "gw_lob",
+          "x-ms-dataverse-attribute": "cr8b3_gw_lob",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_lob",
+          "enum": [
+            "N/A",
+            "Concierge",
+            "Enterprise",
+            "Emea"
+          ],
+          "x-ms-enum-values": [
+            100000000,
+            1,
+            2,
+            3
+          ],
+          "Color": [
+            null,
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "953075c8-5b2f-ee11-bdf4-000d3a5c4cdb",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_lob",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_lobname": {
+          "type": "string",
+          "title": "cr8b3_gw_lobname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_lobname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_lobName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_location": {
+          "type": "string",
+          "title": "gw_location",
+          "x-ms-dataverse-attribute": "cr8b3_gw_location",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_location"
+        },
+        "cr8b3_gw_locationname": {
+          "type": "string",
+          "title": "cr8b3_gw_locationname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_locationname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_locationName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_lop": {
+          "type": "string",
+          "title": "gw_teramind_exemption",
+          "x-ms-dataverse-attribute": "cr8b3_gw_lop",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_lop",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "983075c8-5b2f-ee11-bdf4-000d3a5c4cdb",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_lop",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_lopname": {
+          "type": "string",
+          "title": "cr8b3_gw_lopname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_lopname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_lopName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_model_id": {
+          "type": "string",
+          "title": "gw_mid",
+          "x-ms-dataverse-attribute": "cr8b3_gw_model_id",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_model_id",
+          "maxLength": 100
+        },
+        "cr8b3_gw_month": {
+          "type": "string",
+          "title": "gw_month",
+          "x-ms-dataverse-attribute": "cr8b3_gw_month",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cr8b3_gw_month",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_name": {
+          "type": "string",
+          "title": "gw_name",
+          "x-ms-dataverse-attribute": "cr8b3_gw_name",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_name",
+          "maxLength": 100
+        },
+        "cr8b3_gw_official_mail_id": {
+          "type": "string",
+          "title": "gw_official_mail_id",
+          "x-ms-dataverse-attribute": "cr8b3_gw_official_mail_id",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_official_mail_id",
+          "maxLength": 100
+        },
+        "cr8b3_gw_opt_in_for_pf": {
+          "type": "string",
+          "title": "gw_opt_in_for_PF",
+          "x-ms-dataverse-attribute": "cr8b3_gw_opt_in_for_pf",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr8b3_gw_opt_in_for_PF",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "9a78ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_opt_in_for_PF",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr8b3_gw_opt_in_for_pfname": {
+          "type": "string",
+          "title": "cr8b3_gw_opt_in_for_pfname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_opt_in_for_pfname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_opt_in_for_pfName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_opt_in_ghi": {
+          "type": "string",
+          "title": "gw_opt_in_GHI",
+          "x-ms-dataverse-attribute": "cr8b3_gw_opt_in_ghi",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "cr8b3_gw_opt_in_GHI",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "9d78ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_opt_in_GHI",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "cr8b3_gw_opt_in_ghiname": {
+          "type": "string",
+          "title": "cr8b3_gw_opt_in_ghiname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_opt_in_ghiname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_opt_in_ghiName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_pan": {
+          "type": "string",
+          "title": "gw_PAN",
+          "x-ms-dataverse-attribute": "cr8b3_gw_pan",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_PAN",
+          "maxLength": 100
+        },
+        "cr8b3_gw_passing_year": {
+          "type": "string",
+          "title": "gw_passing_year",
+          "x-ms-dataverse-attribute": "cr8b3_gw_passing_year",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_passing_year",
+          "maxLength": 100
+        },
+        "cr8b3_gw_personal_email_id": {
+          "type": "string",
+          "title": "gw_personal_email_id",
+          "x-ms-dataverse-attribute": "cr8b3_gw_personal_email_id",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_personal_email_id",
+          "maxLength": 100
+        },
+        "cr8b3_gw_pf_no": {
+          "type": "string",
+          "title": "gw_PF_no",
+          "x-ms-dataverse-attribute": "cr8b3_gw_pf_no",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_PF_no",
+          "maxLength": 100
+        },
+        "cr8b3_gw_prior_experience": {
+          "type": "string",
+          "title": "gw_prior_experience",
+          "x-ms-dataverse-attribute": "cr8b3_gw_prior_experience",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cr8b3_gw_prior_experience"
+        },
+        "cr8b3_gw_probation_completion_date": {
+          "type": "string",
+          "title": "gw_probation_completion_date",
+          "x-ms-dataverse-attribute": "cr8b3_gw_probation_completion_date",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_probation_completion_date"
+        },
+        "cr8b3_gw_probation_confirmation_date": {
+          "type": "string",
+          "title": "gw_probation_confirmation_date",
+          "x-ms-dataverse-attribute": "cr8b3_gw_probation_confirmation_date",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_probation_confirmation_date"
+        },
+        "cr8b3_gw_reporting_manager": {
+          "type": "string",
+          "title": "gw_reporting_manager",
+          "x-ms-dataverse-attribute": "cr8b3_gw_reporting_manager",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_reporting_manager",
+          "enum": [
+            "Aviraj",
+            "Jai"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "a078ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_reporting_manager",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_reporting_managername": {
+          "type": "string",
+          "title": "cr8b3_gw_reporting_managername",
+          "x-ms-dataverse-attribute": "cr8b3_gw_reporting_managername",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_reporting_managerName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_role_type_id": {
+          "type": "string",
+          "title": "gw_role_type_id",
+          "x-ms-dataverse-attribute": "cr8b3_gw_role_type_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_role_type_id"
+        },
+        "cr8b3_gw_role_type_idname": {
+          "type": "string",
+          "title": "cr8b3_gw_role_type_idname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_role_type_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_role_type_idName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_shift_timings": {
+          "type": "string",
+          "title": "gw_shift_timings",
+          "x-ms-dataverse-attribute": "cr8b3_gw_shift_timings",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_shift_timings"
+        },
+        "cr8b3_gw_shift_timingsname": {
+          "type": "string",
+          "title": "cr8b3_gw_shift_timingsname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_shift_timingsname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_shift_timingsName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_tenure": {
+          "type": "string",
+          "title": "gw_tenure",
+          "x-ms-dataverse-attribute": "cr8b3_gw_tenure",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cr8b3_gw_tenure",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_total_yearof_experience": {
+          "type": "string",
+          "title": "gw_total_year_of_experience",
+          "x-ms-dataverse-attribute": "cr8b3_gw_total_yearof_experience",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cr8b3_gw_total_yearof_experience",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_updatedon": {
+          "type": "string",
+          "title": "gw_updatedon",
+          "x-ms-dataverse-attribute": "cr8b3_gw_updatedon",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "cr8b3_gw_updatedon"
+        },
+        "cr8b3_gw_work_from_office": {
+          "type": "string",
+          "title": "gw_work_from_office",
+          "x-ms-dataverse-attribute": "cr8b3_gw_work_from_office",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "cr8b3_gw_work_from_office",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "a378ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_work_from_office",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "cr8b3_gw_work_from_officename": {
+          "type": "string",
+          "title": "cr8b3_gw_work_from_officename",
+          "x-ms-dataverse-attribute": "cr8b3_gw_work_from_officename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "cr8b3_gw_work_from_officeName",
+          "x-ms-read-only": true
+        },
+        "cr8b3_gw_worklocation": {
+          "type": "string",
+          "title": "gw_worklocation",
+          "x-ms-dataverse-attribute": "cr8b3_gw_worklocation",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "cr8b3_gw_worklocation"
+        },
+        "cr8b3_gw_worklocationname": {
+          "type": "string",
+          "title": "cr8b3_gw_worklocationname",
+          "x-ms-dataverse-attribute": "cr8b3_gw_worklocationname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_gw_worklocationName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "cr8b3_gw_year": {
+          "type": "string",
+          "title": "gw_year",
+          "x-ms-dataverse-attribute": "cr8b3_gw_year",
+          "x-ms-dataverse-type": "DecimalType",
+          "x-ms-schema-name": "cr8b3_gw_year",
+          "x-ms-read-only": true
+        },
+        "cr8b3_name": {
+          "type": "string",
+          "title": "gw_employee_code",
+          "x-ms-dataverse-attribute": "cr8b3_name",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_Name",
+          "x-ms-dataverse-primary-name": true,
+          "maxLength": 100
+        },
+        "cr8b3_workfromoffdays": {
+          "type": "string",
+          "title": "gw_Work From Off Days",
+          "x-ms-dataverse-attribute": "cr8b3_workfromoffdays",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "cr8b3_WorkFromOffDays",
+          "maxLength": 100
+        },
+        "createdby": {
+          "type": "string",
+          "title": "Created By",
+          "x-ms-dataverse-attribute": "createdby",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "CreatedBy",
+          "x-ms-read-only": true
+        },
+        "createdbyname": {
+          "type": "string",
+          "title": "createdbyname",
+          "x-ms-dataverse-attribute": "createdbyname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "CreatedByName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "createdbyyominame": {
+          "type": "string",
+          "title": "createdbyyominame",
+          "x-ms-dataverse-attribute": "createdbyyominame",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "CreatedByYomiName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "createdon": {
+          "type": "string",
+          "title": "Created On",
+          "x-ms-dataverse-attribute": "createdon",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "CreatedOn",
+          "x-ms-read-only": true
+        },
+        "createdonbehalfby": {
+          "type": "string",
+          "title": "Created By (Delegate)",
+          "x-ms-dataverse-attribute": "createdonbehalfby",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "CreatedOnBehalfBy",
+          "x-ms-read-only": true
+        },
+        "createdonbehalfbyname": {
+          "type": "string",
+          "title": "createdonbehalfbyname",
+          "x-ms-dataverse-attribute": "createdonbehalfbyname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "CreatedOnBehalfByName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "createdonbehalfbyyominame": {
+          "type": "string",
+          "title": "createdonbehalfbyyominame",
+          "x-ms-dataverse-attribute": "createdonbehalfbyyominame",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "CreatedOnBehalfByYomiName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "crf46_gw_agreement_signed_by_company_date": {
+          "type": "string",
+          "title": "gw_agreement_signed_by_company_date",
+          "x-ms-dataverse-attribute": "crf46_gw_agreement_signed_by_company_date",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "crf46_gw_agreement_signed_by_company_date"
+        },
+        "crf46_gw_agreement_signed_by_company_reviewer": {
+          "type": "string",
+          "title": "gw_agreement_signed_by_company_reviewer",
+          "x-ms-dataverse-attribute": "crf46_gw_agreement_signed_by_company_reviewer",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_agreement_signed_by_company_reviewer",
+          "maxLength": 100
+        },
+        "crf46_gw_bgv_onboarding_check": {
+          "type": "string",
+          "title": "gw_bgv_onboarding_check",
+          "x-ms-dataverse-attribute": "crf46_gw_bgv_onboarding_check",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "crf46_gw_bgv_onboarding_check",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "0fabf1a1-8b31-f011-8c4e-00224809c935",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_bgv_onboarding_check",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "crf46_gw_bgv_onboarding_checkname": {
+          "type": "string",
+          "title": "crf46_gw_bgv_onboarding_checkname",
+          "x-ms-dataverse-attribute": "crf46_gw_bgv_onboarding_checkname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_bgv_onboarding_checkName",
+          "x-ms-read-only": true
+        },
+        "crf46_gw_biometric_id": {
+          "type": "string",
+          "title": "gw_biometric_id",
+          "x-ms-dataverse-attribute": "crf46_gw_biometric_id",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_biometric_id",
+          "maxLength": 100
+        },
+        "crf46_gw_documents_onboarding_check": {
+          "type": "string",
+          "title": "gw_documents_onboarding_check",
+          "x-ms-dataverse-attribute": "crf46_gw_documents_onboarding_check",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "crf46_gw_documents_onboarding_check",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "12abf1a1-8b31-f011-8c4e-00224809c935",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_documents_onboarding_check",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "crf46_gw_documents_onboarding_checkname": {
+          "type": "string",
+          "title": "crf46_gw_documents_onboarding_checkname",
+          "x-ms-dataverse-attribute": "crf46_gw_documents_onboarding_checkname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_documents_onboarding_checkName",
+          "x-ms-read-only": true
+        },
+        "crf46_gw_emp_reporting_manager": {
+          "type": "string",
+          "title": "gw_emp_reporting_manager",
+          "x-ms-dataverse-attribute": "crf46_gw_emp_reporting_manager",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "crf46_gw_emp_reporting_manager"
+        },
+        "crf46_gw_emp_reporting_managername": {
+          "type": "string",
+          "title": "crf46_gw_emp_reporting_managername",
+          "x-ms-dataverse-attribute": "crf46_gw_emp_reporting_managername",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_emp_reporting_managerName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "crf46_gw_greythr_emp_id": {
+          "type": "string",
+          "title": "gw_greythr_emp_id",
+          "x-ms-dataverse-attribute": "crf46_gw_greythr_emp_id",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_greythr_emp_id",
+          "maxLength": 100
+        },
+        "crf46_gw_greythr_leave_scheme": {
+          "type": "string",
+          "title": "gw_greythr_leave_scheme",
+          "x-ms-dataverse-attribute": "crf46_gw_greythr_leave_scheme",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "crf46_gw_greythr_leave_scheme"
+        },
+        "crf46_gw_greythr_leave_schemename": {
+          "type": "string",
+          "title": "crf46_gw_greythr_leave_schemename",
+          "x-ms-dataverse-attribute": "crf46_gw_greythr_leave_schemename",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_greythr_leave_schemeName",
+          "x-ms-read-only": true,
+          "maxLength": 850
+        },
+        "crf46_gw_greythr_marital_status": {
+          "type": "string",
+          "title": "gw_greythr_marital_status",
+          "x-ms-dataverse-attribute": "crf46_gw_greythr_marital_status",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "crf46_gw_greythr_marital_status"
+        },
+        "crf46_gw_greythr_marital_statusname": {
+          "type": "string",
+          "title": "crf46_gw_greythr_marital_statusname",
+          "x-ms-dataverse-attribute": "crf46_gw_greythr_marital_statusname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_greythr_marital_statusName",
+          "x-ms-read-only": true,
+          "maxLength": 850
+        },
+        "crf46_gw_is_signed_by_company": {
+          "type": "string",
+          "title": "gw_is_signed_by_company",
+          "x-ms-dataverse-attribute": "crf46_gw_is_signed_by_company",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "crf46_gw_is_signed_by_company",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "47ab7b8a-110a-f011-bae3-000d3a30ca96",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_is_signed_by_company",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "crf46_gw_is_signed_by_companyname": {
+          "type": "string",
+          "title": "crf46_gw_is_signed_by_companyname",
+          "x-ms-dataverse-attribute": "crf46_gw_is_signed_by_companyname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_is_signed_by_companyName",
+          "x-ms-read-only": true
+        },
+        "crf46_gw_onboarding_id": {
+          "type": "string",
+          "title": "gw_onboarding_id",
+          "x-ms-dataverse-attribute": "crf46_gw_onboarding_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "crf46_gw_onboarding_id"
+        },
+        "crf46_gw_onboarding_idname": {
+          "type": "string",
+          "title": "crf46_gw_onboarding_idname",
+          "x-ms-dataverse-attribute": "crf46_gw_onboarding_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_onboarding_idName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "crf46_gw_onboarding_is_complete": {
+          "type": "string",
+          "title": "gw_onboarding_is_complete",
+          "x-ms-dataverse-attribute": "crf46_gw_onboarding_is_complete",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "crf46_gw_onboarding_is_complete",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "4bab7b8a-110a-f011-bae3-000d3a30ca96",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_onboarding_is_complete",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "crf46_gw_onboarding_is_completename": {
+          "type": "string",
+          "title": "crf46_gw_onboarding_is_completename",
+          "x-ms-dataverse-attribute": "crf46_gw_onboarding_is_completename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_onboarding_is_completeName",
+          "x-ms-read-only": true
+        },
+        "crf46_gw_reason_of_exit": {
+          "type": "string",
+          "title": "gw_reason_of_exit",
+          "x-ms-dataverse-attribute": "crf46_gw_reason_of_exit",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_reason_of_exit",
+          "maxLength": 2000
+        },
+        "crf46_gw_status_id": {
+          "type": "string",
+          "title": "gw_status_id",
+          "x-ms-dataverse-attribute": "crf46_gw_status_id",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "crf46_gw_status_id"
+        },
+        "crf46_gw_status_idname": {
+          "type": "string",
+          "title": "crf46_gw_status_idname",
+          "x-ms-dataverse-attribute": "crf46_gw_status_idname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_status_idName",
+          "x-ms-read-only": true,
+          "maxLength": 850
+        },
+        "crf46_gw_uan_number": {
+          "type": "string",
+          "title": "gw_uan_number",
+          "x-ms-dataverse-attribute": "crf46_gw_uan_number",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "crf46_gw_uan_number",
+          "maxLength": 100
+        },
+        "crf46_gw_variable_pay_applicable": {
+          "type": "string",
+          "title": "gw_variable_pay_applicable",
+          "x-ms-dataverse-attribute": "crf46_gw_variable_pay_applicable",
+          "x-ms-dataverse-type": "BooleanType",
+          "x-ms-schema-name": "crf46_gw_variable_pay_applicable",
+          "enum": [
+            "No",
+            "Yes"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "8331838b-c9d4-ef11-8eea-000d3a5c4cdb",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_variable_pay_applicable",
+          "x-ms-optionSetType": "Boolean"
+        },
+        "crf46_gw_variable_pay_applicablename": {
+          "type": "string",
+          "title": "crf46_gw_variable_pay_applicablename",
+          "x-ms-dataverse-attribute": "crf46_gw_variable_pay_applicablename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_variable_pay_applicableName",
+          "x-ms-read-only": true
+        },
+        "crf46_gw_vid_onboarding_check": {
+          "type": "string",
+          "title": "gw_vid_onboarding_check",
+          "x-ms-dataverse-attribute": "crf46_gw_vid_onboarding_check",
+          "x-ms-dataverse-type": "PicklistType",
+          "x-ms-schema-name": "crf46_gw_vid_onboarding_check",
+          "enum": [
+            "Yes",
+            "No"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "15abf1a1-8b31-f011-8c4e-00224809c935",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "gw_vid_onboarding_check",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "crf46_gw_vid_onboarding_checkname": {
+          "type": "string",
+          "title": "crf46_gw_vid_onboarding_checkname",
+          "x-ms-dataverse-attribute": "crf46_gw_vid_onboarding_checkname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_gw_vid_onboarding_checkName",
+          "x-ms-read-only": true
+        },
+        "crf46_wfo_days": {
+          "type": "string",
+          "title": "wfo_days",
+          "x-ms-dataverse-attribute": "crf46_wfo_days",
+          "x-ms-dataverse-type": "MultiSelectPicklistType",
+          "x-ms-schema-name": "crf46_wfo_days",
+          "enum": [
+            "Monday",
+            "Tuesday",
+            "Wednesday"
+          ],
+          "x-ms-enum-values": [
+            825810000,
+            825810001,
+            825810002
+          ],
+          "Color": [
+            null,
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "a5b3eab4-a6b0-ef11-b8e9-000d3a5c4cdb",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "wfo_days",
+          "x-ms-optionSetType": "Picklist"
+        },
+        "crf46_wfo_daysname": {
+          "type": "string",
+          "title": "crf46_wfo_daysname",
+          "x-ms-dataverse-attribute": "crf46_wfo_daysname",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "crf46_wfo_daysName",
+          "x-ms-read-only": true
+        },
+        "importsequencenumber": {
+          "type": "string",
+          "title": "Import Sequence Number",
+          "x-ms-dataverse-attribute": "importsequencenumber",
+          "x-ms-dataverse-type": "IntegerType",
+          "x-ms-schema-name": "ImportSequenceNumber"
+        },
+        "modifiedby": {
+          "type": "string",
+          "title": "Modified By",
+          "x-ms-dataverse-attribute": "modifiedby",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "ModifiedBy",
+          "x-ms-read-only": true
+        },
+        "modifiedbyname": {
+          "type": "string",
+          "title": "modifiedbyname",
+          "x-ms-dataverse-attribute": "modifiedbyname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "ModifiedByName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "modifiedbyyominame": {
+          "type": "string",
+          "title": "modifiedbyyominame",
+          "x-ms-dataverse-attribute": "modifiedbyyominame",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "ModifiedByYomiName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "modifiedon": {
+          "type": "string",
+          "title": "Modified On",
+          "x-ms-dataverse-attribute": "modifiedon",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "ModifiedOn",
+          "x-ms-read-only": true
+        },
+        "modifiedonbehalfby": {
+          "type": "string",
+          "title": "Modified By (Delegate)",
+          "x-ms-dataverse-attribute": "modifiedonbehalfby",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "ModifiedOnBehalfBy",
+          "x-ms-read-only": true
+        },
+        "modifiedonbehalfbyname": {
+          "type": "string",
+          "title": "modifiedonbehalfbyname",
+          "x-ms-dataverse-attribute": "modifiedonbehalfbyname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "ModifiedOnBehalfByName",
+          "x-ms-read-only": true,
+          "maxLength": 100
+        },
+        "modifiedonbehalfbyyominame": {
+          "type": "string",
+          "title": "modifiedonbehalfbyyominame",
+          "x-ms-dataverse-attribute": "modifiedonbehalfbyyominame",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "ModifiedOnBehalfByYomiName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "overriddencreatedon": {
+          "type": "string",
+          "title": "Record Created On",
+          "x-ms-dataverse-attribute": "overriddencreatedon",
+          "x-ms-dataverse-type": "DateTimeType",
+          "x-ms-schema-name": "OverriddenCreatedOn"
+        },
+        "ownerid": {
+          "type": "string",
+          "title": "Owner",
+          "x-ms-dataverse-attribute": "ownerid",
+          "x-ms-dataverse-type": "OwnerType",
+          "x-ms-schema-name": "OwnerId",
+          "required": true
+        },
+        "owneridname": {
+          "type": "string",
+          "title": "owneridname",
+          "x-ms-dataverse-attribute": "owneridname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "OwnerIdName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "owneridtype": {
+          "type": "string",
+          "title": "owneridtype",
+          "x-ms-dataverse-attribute": "owneridtype",
+          "x-ms-dataverse-type": "EntityNameType",
+          "x-ms-schema-name": "OwnerIdType",
+          "required": true
+        },
+        "owneridyominame": {
+          "type": "string",
+          "title": "owneridyominame",
+          "x-ms-dataverse-attribute": "owneridyominame",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "OwnerIdYomiName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "owningbusinessunit": {
+          "type": "string",
+          "title": "Owning Business Unit",
+          "x-ms-dataverse-attribute": "owningbusinessunit",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "OwningBusinessUnit",
+          "x-ms-read-only": true
+        },
+        "owningbusinessunitname": {
+          "type": "string",
+          "title": "owningbusinessunitname",
+          "x-ms-dataverse-attribute": "owningbusinessunitname",
+          "x-ms-dataverse-type": "StringType",
+          "x-ms-schema-name": "OwningBusinessUnitName",
+          "x-ms-read-only": true,
+          "required": true,
+          "maxLength": 100
+        },
+        "owningteam": {
+          "type": "string",
+          "title": "Owning Team",
+          "x-ms-dataverse-attribute": "owningteam",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "OwningTeam",
+          "x-ms-read-only": true
+        },
+        "owninguser": {
+          "type": "string",
+          "title": "Owning User",
+          "x-ms-dataverse-attribute": "owninguser",
+          "x-ms-dataverse-type": "LookupType",
+          "x-ms-schema-name": "OwningUser",
+          "x-ms-read-only": true
+        },
+        "statecode": {
+          "type": "string",
+          "title": "Status",
+          "x-ms-dataverse-attribute": "statecode",
+          "x-ms-dataverse-type": "StateType",
+          "x-ms-schema-name": "statecode",
+          "required": true,
+          "enum": [
+            "Active",
+            "Inactive"
+          ],
+          "x-ms-enum-values": [
+            0,
+            1
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "5378ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Status",
+          "x-ms-optionSetType": "State"
+        },
+        "statecodename": {
+          "type": "string",
+          "title": "statecodename",
+          "x-ms-dataverse-attribute": "statecodename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "statecodeName",
+          "x-ms-read-only": true
+        },
+        "statuscode": {
+          "type": "string",
+          "title": "Status Reason",
+          "x-ms-dataverse-attribute": "statuscode",
+          "x-ms-dataverse-type": "StatusType",
+          "x-ms-schema-name": "statuscode",
+          "enum": [
+            "Active",
+            "Inactive"
+          ],
+          "x-ms-enum-values": [
+            1,
+            2
+          ],
+          "Color": [
+            null,
+            null
+          ],
+          "x-ms-optionsetmetadataid": "5d78ef5e-8e1c-ee11-8f6e-000d3a5c4453",
+          "x-ms-isGlobal": false,
+          "x-ms-optionsetdisplayname": "Status Reason",
+          "x-ms-optionSetType": "Status"
+        },
+        "statuscodename": {
+          "type": "string",
+          "title": "statuscodename",
+          "x-ms-dataverse-attribute": "statuscodename",
+          "x-ms-dataverse-type": "VirtualType",
+          "x-ms-schema-name": "statuscodeName",
+          "x-ms-read-only": true
+        },
+        "timezoneruleversionnumber": {
+          "type": "string",
+          "title": "Time Zone Rule Version Number",
+          "x-ms-dataverse-attribute": "timezoneruleversionnumber",
+          "x-ms-dataverse-type": "IntegerType",
+          "x-ms-schema-name": "TimeZoneRuleVersionNumber"
+        },
+        "utcconversiontimezonecode": {
+          "type": "string",
+          "title": "UTC Conversion Time Zone Code",
+          "x-ms-dataverse-attribute": "utcconversiontimezonecode",
+          "x-ms-dataverse-type": "IntegerType",
+          "x-ms-schema-name": "UTCConversionTimeZoneCode"
+        },
+        "versionnumber": {
+          "type": "string",
+          "title": "Version Number",
+          "x-ms-dataverse-attribute": "versionnumber",
+          "x-ms-dataverse-type": "BigIntType",
+          "x-ms-schema-name": "VersionNumber",
+          "x-ms-read-only": true
+        }
+      },
+      "required": [
+        "cr8b3_gw_employee_detailsid",
+        "createdbyyominame",
+        "createdonbehalfbyyominame",
+        "modifiedbyyominame",
+        "modifiedonbehalfbyyominame",
+        "ownerid",
+        "owneridname",
+        "owneridtype",
+        "owneridyominame",
+        "owningbusinessunitname",
+        "statecode"
+      ]
+    }
+  }
+}
