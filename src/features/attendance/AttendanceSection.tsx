@@ -157,24 +157,6 @@ function formatUnknownError(error: unknown, fallback: string): string {
   return fallback;
 }
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        reject(new Error("Unable to read the selected file."));
-        return;
-      }
-
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error("Unable to read the selected file."));
-    reader.readAsDataURL(file);
-  });
-}
-
 async function fetchPagedAttendance(filter: string): Promise<AttendanceRecord[]> {
   const allRecords: AttendanceRecord[] = [];
   let skipToken: string | undefined;
@@ -670,36 +652,102 @@ export function AttendanceSection({
     }));
 
     try {
-      const attachmentContent = exceptionModal.attachment ? await fileToBase64(exceptionModal.attachment) : undefined;
       const today = new Date();
       const eventDateOnly = selectedDate.toISOString().slice(0, 10);
       const todayDateOnly = today.toISOString().slice(0, 10);
 
       const payload: Record<string, unknown> = {
-        //cr8b3_name: `${exceptionModal.parameter} - ${submitEmployee.cr8b3_gw_name || exceptionModal.row.employeeName}`,
         cr8b3_gw_event_date: eventDateOnly,
         cr8b3_gw_employee_comments: trimmedRemarks,
         cr8b3_gw_date: todayDateOnly,
         cr8b3_gw_datetime: today.toISOString(),
-        cr8b3_gw_attachments: attachmentContent,
-        cr8b3_gw_attachments_name: exceptionModal.attachment?.name,
         cr8b3_gw_month: selectedDate.getMonth() + 1,
         cr8b3_gw_year: selectedDate.getFullYear(),
         "cr8b3_gw_emp_id@odata.bind": `/cr8b3_gw_employee_detailses(${submitEmployee.cr8b3_gw_employee_detailsid})`,
         "cr8b3_gw_emp_exception_parameter_id@odata.bind": `/cr8b3_gwia_emp_exception_parameter_masters(${selectedParameterRecord.cr8b3_gwia_emp_exception_parameter_masterid})`,
       };
 
+      if (exceptionModal.attachment) {
+        // We only send the name initially; the content is uploaded in a separate step
+        payload.cr8b3_gw_attachments_name = exceptionModal.attachment.name;
+      }
+
       if (submittedStatusRecord?.cr8b3_gwia_employee_status_masterid) {
         payload["cr8b3_gw_employee_exception_status_id@odata.bind"] =
           `/cr8b3_gwia_employee_status_masters(${submittedStatusRecord.cr8b3_gwia_employee_status_masterid})`;
       }
 
-      const createResult = await Cr8b3_gwia_employee_exceptionsesService.create(payload as never);
-      if (!createResult.success || !createResult.data) {
-        throw createResult.error ?? new Error("Unable to create the employee exception record.");
+      console.log("Submitting with payload:", JSON.stringify({ ...payload }));
+      const createdExceptionResponse = await Cr8b3_gwia_employee_exceptionsesService.create(payload as any);
+      if (!createdExceptionResponse.success || !createdExceptionResponse.data) {
+        throw createdExceptionResponse.error ?? new Error("Failed to create exception record.");
       }
 
-      const createdException = createResult.data as ExceptionRecord;
+      const createdException = createdExceptionResponse.data as ExceptionRecord;
+
+      // Binary upload to Dataverse File columns.
+      // We bypass the Connector Hub (which has token exchange issues locally) and use 
+      // the existing authenticated session from the Table Service to hit the native endpoint directly.
+      if (exceptionModal.attachment) {
+        try {
+          const recordId = createdException.cr8b3_gwia_employee_exceptionsid;
+          const fieldName = "cr8b3_gw_attachments";
+          const client: any = (Cr8b3_gwia_employee_exceptionsesService as any).client;
+          const dataSourceName = (Cr8b3_gwia_employee_exceptionsesService as any).dataSourceName;
+
+          if (client && typeof client.uploadFileToRecord === 'function') {
+            console.log("Using toolkit's native uploadFileToRecord method...");
+            await client.uploadFileToRecord(
+              dataSourceName,
+              recordId,
+              fieldName,
+              exceptionModal.attachment,
+              exceptionModal.attachment.name
+            );
+            console.log("File uploaded successfully via native method ✅");
+          } else {
+            console.log("Native method not available, falling back to direct native binary upload...");
+            // Robust fallback capture (handles Proxies and non-enumerable props)
+            const provider = client?._dataverseProvider || client?._connectorProvider || client?._provider || 
+                             (client?._client && (client._client._dataverseProvider || client._client._connectorProvider));
+
+            if (!provider || typeof provider.getHeaders !== 'function') {
+               throw new Error(`Auth capture failed. Available methods: ${Object.keys(client || {}).join(", ")}`);
+            }
+
+            const authHeaders = await provider.getHeaders();
+            const fileBuffer = await exceptionModal.attachment.arrayBuffer();
+            const uploadUrl = `https://staging-gig.crm.dynamics.com/api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}/$value`;
+
+            const response = await fetch(uploadUrl, {
+              method: "PUT",
+              headers: {
+                ...authHeaders,
+                "Content-Type": exceptionModal.attachment.type || "application/octet-stream",
+                "x-ms-file-name": encodeURIComponent(exceptionModal.attachment.name),
+                "If-Match": "*"
+              },
+              body: fileBuffer
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Direct upload rejected: ${response.status} ${errorText}`);
+            }
+            console.log("File uploaded successfully via fallback fetch ✅");
+          }
+        } catch (uploadError: any) {
+          console.error("Direct file upload failed details:", uploadError);
+          const errorMsg = uploadError?.message || JSON.stringify(uploadError);
+          setExceptionModal((current) => ({
+            ...current,
+            submitError: `The record was created, but the attachment failed: ${errorMsg}`,
+            isSubmitting: false,
+          }));
+          return;
+        }
+      }
+
       setExceptionRecords((current) => [
         ...current,
         {

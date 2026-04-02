@@ -478,9 +478,9 @@ export class MicrosoftDataverseService {
    * List rows from selected environment
    * List rows from a table in a Power Platform environment.
    */
-  public static async ListRecordsWithOrganization(organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string): Promise<IOperationResult<Record<string, unknown>>> {
-    const params: { organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string } = { organization, entityName, prefer, accept, x_ms_odata_metadata_full, MSCRM.IncludeMipSensitivityLabel, $select, $filter, $orderby, $expand, fetchXml, $top, $skiptoken, partitionId };
-    const result = await MicrosoftDataverseService.client.executeAsync<{ organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string }, Record<string, unknown>>(
+  public static async ListRecordsWithOrganization(organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, MSCRM_IncludeMipSensitivityLabel?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string): Promise<IOperationResult<Record<string, unknown>>> {
+    const params: { organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, "MSCRM.IncludeMipSensitivityLabel"?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string } = { organization, entityName, prefer, accept, x_ms_odata_metadata_full, "MSCRM.IncludeMipSensitivityLabel": MSCRM_IncludeMipSensitivityLabel, $select, $filter, $orderby, $expand, fetchXml, $top, $skiptoken, partitionId };
+    const result = await MicrosoftDataverseService.client.executeAsync<{ organization: string, entityName: string, prefer?: string, accept?: string, x_ms_odata_metadata_full?: boolean, "MSCRM.IncludeMipSensitivityLabel"?: boolean, $select?: string, $filter?: string, $orderby?: string, $expand?: string, fetchXml?: string, $top?: number, $skiptoken?: string, partitionId?: string }, Record<string, unknown>>(
       {
         connectorOperation: {
           tableName: MicrosoftDataverseService.dataSourceName,
@@ -564,8 +564,8 @@ export class MicrosoftDataverseService {
    * This action allows you to modify any selected row in a Microsoft Dataverse table. This connector was formerly known as Common Data Service (current environment).
    */
   public static async UpdateOnlyRecord(prefer: string, accept: string, If_Match: string, entityName: string, recordId: string, item: Record<string, unknown>, x_ms_odata_metadata_full?: boolean): Promise<IOperationResult<Record<string, unknown>>> {
-    const params: { prefer: string, accept: string, If_Match: string, entityName: string, recordId: string, item: Record<string, unknown>, x_ms_odata_metadata_full?: boolean } = { prefer, accept, If_Match, entityName, recordId, item, x_ms_odata_metadata_full };
-    const result = await MicrosoftDataverseService.client.executeAsync<{ prefer: string, accept: string, If_Match: string, entityName: string, recordId: string, item: Record<string, unknown>, x_ms_odata_metadata_full?: boolean }, Record<string, unknown>>(
+    const params: { prefer: string, accept: string, "If-Match": string, entityName: string, recordId: string, item: Record<string, unknown>, x_ms_odata_metadata_full?: boolean } = { prefer, accept, "If-Match": If_Match, entityName, recordId, item, x_ms_odata_metadata_full };
+    const result = await MicrosoftDataverseService.client.executeAsync<{ prefer: string, accept: string, "If-Match": string, entityName: string, recordId: string, item: Record<string, unknown>, x_ms_odata_metadata_full?: boolean }, Record<string, unknown>>(
       {
         connectorOperation: {
           tableName: MicrosoftDataverseService.dataSourceName,
@@ -580,9 +580,9 @@ export class MicrosoftDataverseService {
    * Get a row by ID from selected environment
    * Get a row from a table in a Power Platform environment.
    */
-  public static async GetItemWithOrganization(prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $expand?: string, partitionId?: string): Promise<IOperationResult<Record<string, unknown>>> {
-    const params: { prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $expand?: string, partitionId?: string } = { prefer, accept, organization, entityName, recordId, x_ms_odata_metadata_full, MSCRM.IncludeMipSensitivityLabel, $select, $expand, partitionId };
-    const result = await MicrosoftDataverseService.client.executeAsync<{ prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, MSCRM.IncludeMipSensitivityLabel?: boolean, $select?: string, $expand?: string, partitionId?: string }, Record<string, unknown>>(
+  public static async GetItemWithOrganization(prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, MSCRM_IncludeMipSensitivityLabel?: boolean, $select?: string, $expand?: string, partitionId?: string): Promise<IOperationResult<Record<string, unknown>>> {
+    const params: { prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, "MSCRM.IncludeMipSensitivityLabel"?: boolean, $select?: string, $expand?: string, partitionId?: string } = { prefer, accept, organization, entityName, recordId, x_ms_odata_metadata_full, "MSCRM.IncludeMipSensitivityLabel": MSCRM_IncludeMipSensitivityLabel, $select, $expand, partitionId };
+    const result = await MicrosoftDataverseService.client.executeAsync<{ prefer: string, accept: string, organization: string, entityName: string, recordId: string, x_ms_odata_metadata_full?: boolean, "MSCRM.IncludeMipSensitivityLabel"?: boolean, $select?: string, $expand?: string, partitionId?: string }, Record<string, unknown>>(
       {
         connectorOperation: {
           tableName: MicrosoftDataverseService.dataSourceName,
@@ -1129,9 +1129,9 @@ export class MicrosoftDataverseService {
    * Upload a file or an image
    * This action allows you to upload a file or an image content to a Microsoft Dataverse table with a compatible column type. This connector was formerly known as Common Data Service (current environment).
    */
-  public static async UpdateEntityFileImageFieldContent(content_type: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string): Promise<IOperationResult<void>> {
-    const params: { content_type: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string } = { content_type, entityName, recordId, fileImageFieldName, item, x_ms_file_name };
-    const result = await MicrosoftDataverseService.client.executeAsync<{ content_type: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string }, void>(
+  public static async UpdateEntityFileImageFieldContent(content_type: string, entityName: string, recordId: string, fileImageFieldName: string, item: any, x_ms_file_name: string): Promise<IOperationResult<void>> {
+    const params: { "content-type": string, entityName: string, recordId: string, fileImageFieldName: string, item: any, "x-ms-file-name": string } = { "content-type": content_type, entityName, recordId, fileImageFieldName, item, "x-ms-file-name": x_ms_file_name };
+    const result = await MicrosoftDataverseService.client.executeAsync<{ "content-type": string, entityName: string, recordId: string, fileImageFieldName: string, item: any, "x-ms-file-name": string }, void>(
       {
         connectorOperation: {
           tableName: MicrosoftDataverseService.dataSourceName,
@@ -1146,9 +1146,9 @@ export class MicrosoftDataverseService {
    * Upload a file or an image to selected environment
    * Update file or image content in a row in a Power Platform environment.
    */
-  public static async UpdateEntityFileImageFieldContentWithOrganization(content_type: string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string): Promise<IOperationResult<void>> {
-    const params: { content_type: string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string } = { content_type, organization, entityName, recordId, fileImageFieldName, item, x_ms_file_name };
-    const result = await MicrosoftDataverseService.client.executeAsync<{ content_type: string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: string, x_ms_file_name: string }, void>(
+  public static async UpdateEntityFileImageFieldContentWithOrganization(content_type: string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: any, x_ms_file_name: string): Promise<IOperationResult<void>> {
+    const params: { "content-type": string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: any, "x-ms-file-name": string } = { "content-type": content_type, organization, entityName, recordId, fileImageFieldName, item, "x-ms-file-name": x_ms_file_name };
+    const result = await MicrosoftDataverseService.client.executeAsync<{ "content-type": string, organization: string, entityName: string, recordId: string, fileImageFieldName: string, item: any, "x-ms-file-name": string }, void>(
       {
         connectorOperation: {
           tableName: MicrosoftDataverseService.dataSourceName,
