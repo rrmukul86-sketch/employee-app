@@ -242,13 +242,24 @@ function isEditableCurrentMonthStatus(value?: string): boolean {
   return normalized === "" || normalized === "absent" || normalized === "0.5-absent";
 }
 
-function hasBlockedExceptionStatus(record: ExceptionRecord): boolean {
+function hasBlockedExceptionStatus(record: ExceptionRecord, statusRecords: EmployeeStatusRecord[]): boolean {
   const lookupName = record.cr8b3_gw_employee_exception_status_idname?.trim();
-  if (lookupName === "1" || lookupName === "2") {
-    return true;
+  if (lookupName) {
+    return lookupName === "1" || lookupName === "2";
   }
 
-  return record.statuscode === 1 || record.statuscode === 2;
+  const rawId = record._cr8b3_gw_employee_exception_status_id_value;
+  if (rawId) {
+    const matchedMaster = statusRecords.find(
+      (master) => master.cr8b3_gwia_employee_status_masterid?.toLowerCase() === rawId.toLowerCase()
+    );
+    if (matchedMaster) {
+      const masterName = matchedMaster.cr8b3_name?.trim();
+      return masterName === "1" || masterName === "2";
+    }
+  }
+
+  return false;
 }
 
 function isWithinCurrentMonthWindow(createdOn?: string): boolean {
@@ -284,12 +295,25 @@ function normalizeStatusText(value?: string): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
-function buildExceptionFilter(employeeId: string, monthOption: MonthOption): string {
+function buildExceptionFilter(employeeId: string, monthOption: MonthOption, useQuotedMonthYear = false): string {
+  const monthValue = useQuotedMonthYear ? `'${monthOption.monthNumber}'` : `${monthOption.monthNumber}`;
+  const yearValue = useQuotedMonthYear ? `'${monthOption.year}'` : `${monthOption.year}`;
   return [
     `_cr8b3_gw_emp_id_value eq ${employeeId}`,
-    `cr8b3_gw_month eq '${monthOption.monthNumber}'`,
-    `cr8b3_gw_year eq '${monthOption.year}'`,
+    `cr8b3_gw_month eq ${monthValue}`,
+    `cr8b3_gw_year eq ${yearValue}`,
   ].join(" and ");
+}
+
+async function fetchExceptionsWithFallback(employeeId: string, monthOption: MonthOption): Promise<ExceptionRecord[]> {
+  const numericFilter = buildExceptionFilter(employeeId, monthOption, false);
+  const stringFilter = buildExceptionFilter(employeeId, monthOption, true);
+
+  try {
+    return await fetchPagedExceptions(numericFilter);
+  } catch {
+    return fetchPagedExceptions(stringFilter);
+  }
 }
 
 function buildAttendanceFilter(employeeId: string, monthOption: MonthOption, selectedStatus?: string, useQuotedMonthYear = false): string {
@@ -424,9 +448,9 @@ export function AttendanceSection({
 
         let exceptions: ExceptionRecord[] = [];
         try {
-          const exceptionFilter = buildExceptionFilter(targetEmployeeId, selectedMonthOption);
-          exceptions = await fetchPagedExceptions(exceptionFilter);
-        } catch {
+          exceptions = await fetchExceptionsWithFallback(targetEmployeeId, selectedMonthOption);
+        } catch (e) {
+          console.error("Failed to load exceptions", e);
           exceptions = [];
         }
 
@@ -489,7 +513,7 @@ export function AttendanceSection({
       );
 
       const hasException = matchingExceptions.length > 0;
-      const hasBlockedException = matchingExceptions.some(hasBlockedExceptionStatus);
+      const hasBlockedException = matchingExceptions.some((ex) => hasBlockedExceptionStatus(ex, employeeStatusRecords));
 
       let canApply = false;
 
