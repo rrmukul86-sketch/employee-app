@@ -516,7 +516,6 @@ export function AttendanceSection({
       const hasBlockedException = matchingExceptions.some((ex) => hasBlockedExceptionStatus(ex, employeeStatusRecords));
 
       let canApply = false;
-
       if (hasException) {
         canApply = !hasBlockedException;
       } else if (currentMonthSelected) {
@@ -530,7 +529,7 @@ export function AttendanceSection({
         canApply,
       };
     });
-  }, [employeeCode, employeeName, exceptionRecords, records, selectedMonthOption]);
+  }, [employeeCode, employeeName, exceptionRecords, records, selectedMonthOption, employeeStatusRecords]);
 
   const canSubmitException = Boolean(
     exceptionModal.row &&
@@ -905,7 +904,11 @@ export function AttendanceSection({
                   <article key={row.id} className="attendance-row">
                     <span>{row.employeeCode}</span>
                     <span>{row.employeeName}</span>
-                    <span className={`attendance-status attendance-status-${row.status.toLowerCase().replace(/\s+/g, "-")}`}>{row.status}</span>
+                    <span>
+                      <span className={`attendance-status attendance-status-${row.status.toLowerCase().replace(/[\s.]+/g, "-")}`}>
+                        {row.status}
+                      </span>
+                    </span>
                     <span>{row.date}</span>
                     <span>{row.productiveTime}</span>
                     <span>{row.activity}</span>

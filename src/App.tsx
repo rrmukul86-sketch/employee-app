@@ -10,8 +10,9 @@ import { Office365UsersService } from "./generated/services/Office365UsersServic
 import { AttendanceSection } from "./features/attendance/AttendanceSection";
 import { EmployeeDetailsSection } from "./features/employee-details/EmployeeDetailsSection";
 import { MyProfileSection } from "./features/my-profile/MyProfileSection";
+import { ExceptionSection } from "./features/exception/ExceptionSection";
 
-type Section = "profile" | "employees" | "attendance";
+type Section = "profile" | "employees" | "attendance" | "exception";
 type LoadState = "idle" | "loading" | "ready" | "error";
 type EmployeeDialogState = "closed" | "loading" | "ready" | "error";
 type MutationState = "idle" | "saving" | "success" | "error";
@@ -142,7 +143,7 @@ function normalizeEmail(value?: string): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
-function isActiveEmployeeValue(value: unknown): boolean {
+export function isActiveEmployeeValue(value: unknown): boolean {
   return value === 1 || value === true || String(value).toLowerCase() === "1" || String(value).toLowerCase() === "true";
 }
 
@@ -758,6 +759,17 @@ export default function App() {
                 <span className="nav-subtitle">Daily status and activity</span>
               </span>
             </button>
+            <button
+              type="button"
+              className={`nav-item ${activeSection === "exception" ? "nav-item-active" : ""}`}
+              onClick={() => setActiveSection("exception")}
+            >
+              <span className="nav-icon">⚠</span>
+              <span className="nav-text">
+                <span className="nav-title">Exception</span>
+                <span className="nav-subtitle">Manage exceptions</span>
+              </span>
+            </button>
           </nav>
 
           <div className="nav-divider nav-divider-soft" />
@@ -852,6 +864,30 @@ export default function App() {
                 <div>Employee code matches: {String(attendanceAccessDebug.linkedEmployeeCandidateCount)}</div>
                 <div>Employee match statuses: {attendanceAccessDebug.linkedEmployeeCandidateStatuses || "none"}</div>
               </div>
+            </div>
+          )
+        )}
+
+        {pageState === "ready" && activeSection === "exception" && (
+          hasAttendanceAccess ? (
+            <SectionErrorBoundary>
+              <ExceptionSection
+                userName={myOfficeProfile?.displayName}
+                userEmail={myOfficeProfile?.mail}
+                employeeRecords={employeeRecords}
+                autoEmployeeRecords={autoEmployeeRecords}
+                isAutoAgent={attendanceAccessInfo.isAutoAgent}
+                autoAgentEmployeeCode={attendanceAccessInfo.autoAgentEmployeeCode}
+                currentUserEmail={myOfficeProfile?.mail}
+                onClose={() => setActiveSection("profile")}
+              />
+            </SectionErrorBoundary>
+          ) : (
+            <div className="status-card status-card-error">
+              <p className="status-title">Access Denied</p>
+              <p className="status-copy">
+                Exceptions are available only when your email matches an active employee record, or an auto employee record linked to an active employee.
+              </p>
             </div>
           )
         )}

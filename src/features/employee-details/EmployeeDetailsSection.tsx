@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { EmployeeDialogData, EmployeeFieldKey, EmployeeFieldRule, EmployeeFormValues, EmployeeRecord } from "../../App";
+import { isActiveEmployeeValue } from "../../App";
 
 type EmployeeDetailsSectionProps = {
   employees: EmployeeRecord[];
@@ -494,6 +495,7 @@ export function EmployeeDetailsSection({
           <div className="employee-table-head">
             <span>Employee</span>
             <span>Department</span>
+            <span>Status</span>
             <span>Phone</span>
             <span>Date of Birth</span>
             <span>Action</span>
@@ -510,7 +512,16 @@ export function EmployeeDetailsSection({
                   </div>
                 </div>
                 <div className="employee-cell">
-                  <span className="table-pill">{employee.cr8b3_gw_departmentname || "No department"}</span>
+                  <span className="attendance-status attendance-status-unknown" style={{ fontSize: '0.74rem', minWidth: '70px', padding: '3px 8px' }}>
+                    {employee.cr8b3_gw_departmentname || "None"}
+                  </span>
+                </div>
+                <div className="employee-cell">
+                  {isActiveEmployeeValue(employee.cr8b3_gw_active_status) ? (
+                    <span className="attendance-status attendance-status-active">Active</span>
+                  ) : (
+                    <span className="attendance-status attendance-status-inactive">Inactive</span>
+                  )}
                 </div>
                 <div className="employee-cell">{formatPhone(employee.cr8b3_gw_contact_details) || "—"}</div>
                 <div className="employee-cell">{formatDate(employee.cr8b3_gw_date_of_birth) || "—"}</div>
