@@ -24,6 +24,10 @@ const children = [
       env: process.env,
     }
   ),
+  spawn(process.execPath, ["scripts/upload-service.mjs"], {
+    stdio: "inherit",
+    env: process.env,
+  }),
 ];
 
 let shuttingDown = false;

@@ -700,83 +700,45 @@ export function AttendanceSection({
           `/cr8b3_gwia_employee_status_masters(${submittedStatusRecord.cr8b3_gwia_employee_status_masterid})`;
       }
 
-      console.log("Submitting with payload:", JSON.stringify({ ...payload }));
-      const createdExceptionResponse = await Cr8b3_gwia_employee_exceptionsesService.create(payload as any);
-      if (!createdExceptionResponse.success || !createdExceptionResponse.data) {
-        throw createdExceptionResponse.error ?? new Error("Failed to create exception record.");
+      // --- UNIFIED BACKEND TRANSACTION ---
+      // We send metadata in a header and the file in the body.
+      // The backend service handles: Record Creation -> GUID Retrieval -> Binary Storage.
+      console.log(`[Frontend] Initiating unified transaction via Backend Service...`);
+      
+      let resolvedContentType = exceptionModal.attachment?.type || "application/octet-stream";
+      if (exceptionModal.attachment && (!resolvedContentType || resolvedContentType === "application/octet-stream")) {
+         const ext = exceptionModal.attachment.name.split('.').pop()?.toLowerCase();
+         const mimeMap: Record<string, string> = { 'pdf': 'application/pdf', 'png': 'image/png', 'jpg': 'image/jpeg' };
+         resolvedContentType = mimeMap[ext || ''] || "application/pdf";
       }
 
-      const createdException = createdExceptionResponse.data as ExceptionRecord;
+      const fileBuffer = exceptionModal.attachment ? await exceptionModal.attachment.arrayBuffer() : new ArrayBuffer(0);
 
-      // Binary upload to Dataverse File columns.
-      // We bypass the Connector Hub (which has token exchange issues locally) and use 
-      // the existing authenticated session from the Table Service to hit the native endpoint directly.
-      if (exceptionModal.attachment) {
-        try {
-          const recordId = createdException.cr8b3_gwia_employee_exceptionsid;
-          const fieldName = "cr8b3_gw_attachments";
-          const client: any = (Cr8b3_gwia_employee_exceptionsesService as any).client;
-          const dataSourceName = (Cr8b3_gwia_employee_exceptionsesService as any).dataSourceName;
+      const response = await fetch("http://localhost:3001/create-and-upload", {
+        method: "POST",
+        headers: {
+          "x-file-name": exceptionModal.attachment?.name || "none",
+          "x-content-type": resolvedContentType,
+          "x-payload": encodeURIComponent(JSON.stringify(payload))
+        },
+        body: fileBuffer
+      });
 
-          if (client && typeof client.uploadFileToRecord === 'function') {
-            console.log("Using toolkit's native uploadFileToRecord method...");
-            await client.uploadFileToRecord(
-              dataSourceName,
-              recordId,
-              fieldName,
-              exceptionModal.attachment,
-              exceptionModal.attachment.name
-            );
-            console.log("File uploaded successfully via native method ✅");
-          } else {
-            console.log("Native method not available, falling back to direct native binary upload...");
-            // Robust fallback capture (handles Proxies and non-enumerable props)
-            const provider = client?._dataverseProvider || client?._connectorProvider || client?._provider || 
-                             (client?._client && (client._client._dataverseProvider || client._client._connectorProvider));
-
-            if (!provider || typeof provider.getHeaders !== 'function') {
-               throw new Error(`Auth capture failed. Available methods: ${Object.keys(client || {}).join(", ")}`);
-            }
-
-            const authHeaders = await provider.getHeaders();
-            const fileBuffer = await exceptionModal.attachment.arrayBuffer();
-            const uploadUrl = `https://staging-gig.crm.dynamics.com/api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}/$value`;
-
-            const response = await fetch(uploadUrl, {
-              method: "PUT",
-              headers: {
-                ...authHeaders,
-                "Content-Type": exceptionModal.attachment.type || "application/octet-stream",
-                "x-ms-file-name": encodeURIComponent(exceptionModal.attachment.name),
-                "If-Match": "*"
-              },
-              body: fileBuffer
-            });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Direct upload rejected: ${response.status} ${errorText}`);
-            }
-            console.log("File uploaded successfully via fallback fetch ✅");
-          }
-        } catch (uploadError: any) {
-          console.error("Direct file upload failed details:", uploadError);
-          const errorMsg = uploadError?.message || JSON.stringify(uploadError);
-          setExceptionModal((current) => ({
-            ...current,
-            submitError: `The record was created, but the attachment failed: ${errorMsg}`,
-            isSubmitting: false,
-          }));
-          return;
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Transaction Rejected: ${response.status} ${errorText}`);
       }
+
+      const result = await response.json();
+      const createdRecord = result.data as ExceptionRecord;
+      console.log(`[Frontend] Success: Record ${result.id} persisted with attachment ✅`);
 
       setExceptionRecords((current) => [
         ...current,
         {
-          ...createdException,
-          cr8b3_gw_event_date: createdException.cr8b3_gw_event_date || eventDateOnly,
-          cr8b3_gw_date: createdException.cr8b3_gw_date || todayDateOnly,
+          ...createdRecord,
+          cr8b3_gw_event_date: createdRecord.cr8b3_gw_event_date || eventDateOnly,
+          cr8b3_gw_date: createdRecord.cr8b3_gw_date || todayDateOnly,
         },
       ]);
 

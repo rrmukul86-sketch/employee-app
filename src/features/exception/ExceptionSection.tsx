@@ -139,6 +139,84 @@ export function ExceptionSection({
   const [sortColumnDate, setSortColumnDate] = useState<boolean>(false);
   const [sortAscending, setSortAscending] = useState<boolean>(false); // False -> Descending
 
+  const [selectedEx, setSelectedEx] = useState<ExceptionRecord | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleViewDetails = (id: string) => {
+    const raw = exceptions.find(x => x.cr8b3_gwia_employee_exceptionsid === id);
+    if (raw) {
+      setSelectedEx(raw);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDownloadAttachment = async (ex: ExceptionRecord) => {
+    if (!ex.cr8b3_gwia_employee_exceptionsid) return;
+    
+    try {
+      const recordId = ex.cr8b3_gwia_employee_exceptionsid;
+      const fieldName = "cr8b3_gw_attachments";
+      
+      const downloadUrl = `https://staging-gig.crm.dynamics.com/api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}/$value`;
+      
+      const client = (Cr8b3_gwia_employee_exceptionsesService as any).client;
+      const provider = client._client?._dataverseProvider || client._client?._connectorProvider || client._dataverseProvider || client._connectorProvider;
+      
+      if (!provider) throw new Error("Unified data provider not accessible.");
+      const authHeaders = await provider.getHeaders();
+
+      const response = await fetch(downloadUrl, {
+        headers: { ...authHeaders }
+      });
+
+      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
+
+      // Extract critical metadata from Dataverse response headers
+      const contentType = response.headers.get("Content-Type") || "application/octet-stream";
+      const headerFileName = response.headers.get("x-ms-file-name");
+      
+      // Prioritize the server-provided filename if available, then the record metadata
+      const finalFileName = headerFileName ? decodeURIComponent(headerFileName) : (ex.cr8b3_gw_attachments_name || "attachment");
+
+      // Use ArrayBuffer to avoid "Blob-in-a-Blob" issues
+      const buffer = await response.arrayBuffer();
+      const finalBlob = new Blob([buffer], { type: contentType });
+      
+      const url = window.URL.createObjectURL(finalBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = finalFileName;
+      
+      console.log(`Downloading ${finalFileName} as ${contentType}...`);
+      document.body.appendChild(a);
+      a.click();
+      
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error("Attachment download failed:", err);
+      alert("Unable to download the attachment. Please try again later.");
+    }
+  };
+
+  const getStatusDisplay = (ex: ExceptionRecord) => {
+    let name = ex.cr8b3_gw_employee_exception_status_idname;
+    if (!name && ex._cr8b3_gw_employee_exception_status_id_value) {
+      const match = statusMasters.find(m => m.cr8b3_gwia_employee_status_masterid === ex._cr8b3_gw_employee_exception_status_id_value);
+      name = match?.cr8b3_gw_emp_status || match?.cr8b3_name || "Pending";
+    }
+    return name || "Pending";
+  };
+
+  const getParameterDisplay = (ex: ExceptionRecord) => {
+    let name = ex.cr8b3_gw_emp_exception_parameter_idname;
+    if (!name && ex._cr8b3_gw_emp_exception_parameter_id_value) {
+      const match = parameterMasters.find(m => m.cr8b3_gwia_emp_exception_parameter_masterid === ex._cr8b3_gw_emp_exception_parameter_id_value);
+      name = match?.cr8b3_gw_exception_parameter || ex._cr8b3_gw_emp_exception_parameter_id_value;
+    }
+    return name || "Unnamed Parameter";
+  };
+
   const selectedMonthOption = useMemo(
     () => monthOptions.find((option) => option.value === selectedMonth),
     [monthOptions, selectedMonth]
@@ -391,7 +469,11 @@ export function ExceptionSection({
                     </span>
                   </span>
                   <span>
-                    <button className="attendance-apply-button" type="button">
+                    <button 
+                      className="attendance-apply-button" 
+                      type="button"
+                      onClick={() => handleViewDetails(ex.id)}
+                    >
                       Details
                     </button>
                   </span>
@@ -408,6 +490,125 @@ export function ExceptionSection({
           </button>
         </div>
       </div>
+
+      {isModalOpen && selectedEx && (
+        <div className="modal-backdrop">
+          <div className="exception-details-modal">
+            <header className="exception-details-header">
+              <div className="header-brand">
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ffbd00' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff5f56' }}></div>
+                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27c93f' }}></div>
+                </div>
+                <span className="header-title-text" style={{ marginLeft: '12px' }}>Teramind Exception Details</span>
+              </div>
+              <div className="header-user-info">
+                 <p>Name : {userName}</p>
+                 <p>Email : {userEmail}</p>
+              </div>
+              <button 
+                className="modal-close-icon" 
+                onClick={() => setIsModalOpen(false)}
+                title="Close"
+              >
+                &times;
+              </button>
+            </header>
+
+            <div className="exception-details-body">
+              <div className="details-form-grid">
+                <div className="detail-field">
+                  <label>Employee Name</label>
+                  <div className="value-box">{userName}</div>
+                </div>
+                <div className="detail-field">
+                  <label>Gigmos ID</label>
+                  <div className="value-box">{userEmail}</div>
+                </div>
+                <div className="detail-field">
+                  <label>Date Created</label>
+                  <div className="value-box">{formatDisplayDate(selectedEx.cr8b3_gw_date || selectedEx.createdon)}</div>
+                </div>
+                <div className="detail-field">
+                  <label>Exception Parameter</label>
+                  <div className="value-box">{getParameterDisplay(selectedEx)}</div>
+                </div>
+                <div className="detail-field">
+                  <label>Event Date</label>
+                  <div className="value-box">{formatDisplayDate(selectedEx.cr8b3_gw_event_date)}</div>
+                </div>
+                <div className="detail-field">
+                  <label>Exception ID</label>
+                  <div className="value-box">{selectedEx.cr8b3_name || "—"}</div>
+                </div>
+
+                <div className="detail-field full-width">
+                  <label>Remarks</label>
+                  <textarea 
+                    className="value-box" 
+                    readOnly 
+                    value={selectedEx.cr8b3_gw_employee_comments || ""}
+                  />
+                </div>
+
+                <div className="detail-field full-width">
+                  <label>Attachments*</label>
+                  {selectedEx.cr8b3_gw_attachments ? (
+                    <div className="attachments-list">
+                      <div style={{ width: '100%', marginBottom: '10px' }}>
+                        <span className="status-badge-detail" style={{ fontSize: '0.75rem', background: '#e3f2fd', color: '#1976d2', padding: '4px 12px' }}>
+                           Format: Binary Stream
+                        </span>
+                      </div>
+                      <button 
+                        className="attachment-item" 
+                        onClick={() => handleDownloadAttachment(selectedEx)}
+                        style={{ background: 'white', cursor: 'pointer', border: '1px solid #e0e0e0', width: '100%', justifyContent: 'flex-start' }}
+                      >
+                        <span className="attachment-icon">📄</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
+                           <span style={{ fontWeight: 600 }}>{selectedEx.cr8b3_gw_attachments_name || "attachment"}</span>
+                           <span style={{ fontSize: '0.75rem', color: '#777' }}>Native Dataverse Storage (PUT Stream)</span>
+                        </div>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="value-box" style={{ background: '#f5f5f5', fontStyle: 'italic' }}>
+                      No attachments uploaded.
+                    </div>
+                  )}
+                </div>
+
+                <div className="detail-field">
+                  <label>Status</label>
+                  <div>
+                    <span className="status-badge-detail">
+                      {getStatusDisplay(selectedEx)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="detail-field full-width">
+                  <label>HR Comments</label>
+                  <div className="hr-comments-box">
+                    {selectedEx.cr8b3_gw_hr_comments || ""}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <footer className="exception-details-footer">
+              <button 
+                className="close-btn-primary" 
+                onClick={() => setIsModalOpen(false)}
+              >
+                Close
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
