@@ -1,20 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
-import type { AttendanceRecord, AutoEmployeeRecord, EmployeeRecord } from "../../App";
+import type { AppProfile, AttendanceRecord, EmployeeRecord } from "../../App";
 import type { Cr8b3_gwia_employee_exceptionses } from "../../generated/models/Cr8b3_gwia_employee_exceptionsesModel";
 import type { Cr8b3_gwia_employee_status_masters } from "../../generated/models/Cr8b3_gwia_employee_status_mastersModel";
 import type { Cr8b3_gwia_emp_exception_parameter_masters } from "../../generated/models/Cr8b3_gwia_emp_exception_parameter_mastersModel";
-import type { GraphUser_V1 } from "../../generated/models/Office365UsersModel";
-import { Cr8b3_gwia_employee_exceptionsesService } from "../../generated/services/Cr8b3_gwia_employee_exceptionsesService";
-import { Cr8b3_gwia_employee_status_mastersService } from "../../generated/services/Cr8b3_gwia_employee_status_mastersService";
-import { Cr8b3_gwia_emp_exception_parameter_mastersService } from "../../generated/services/Cr8b3_gwia_emp_exception_parameter_mastersService";
-import { Cr8b3_gwia_teramind_reportsService } from "../../generated/services/Cr8b3_gwia_teramind_reportsService";
+import { apiGetJson, getApiBase } from "../../lib/api";
 
 type AttendanceSectionProps = {
-  officeProfile?: GraphUser_V1;
+  officeProfile?: AppProfile;
   employeeRecord?: EmployeeRecord;
-  employeeRecords: EmployeeRecord[];
-  autoEmployeeRecords: AutoEmployeeRecord[];
   currentUserEmail?: string;
+  targetEmployeeId?: string;
   isAutoAgent: boolean;
   autoAgentEmployeeCode?: string;
   onClose: () => void;
@@ -60,9 +55,22 @@ type ExceptionModalState = {
   validationError?: boolean;
 };
 
+type AttendanceResponse = {
+  data: AttendanceRecord[];
+};
+
+type ExceptionResponse = {
+  data: ExceptionRecord[];
+};
+
+type ExceptionMastersResponse = {
+  parameters: ExceptionParameterRecord[];
+  statuses: EmployeeStatusRecord[];
+};
+
 function formatDisplayDate(value?: string): string {
   if (!value) {
-    return "—";
+    return "--";
   }
 
   const parsed = new Date(value);
@@ -103,7 +111,7 @@ function createAttendanceRows(records: AttendanceRecord[], fallbackEmployeeCode:
   return records.map((record) => ({
     id: record.cr8b3_gwia_teramind_reportid,
     sortValue: record.cr8b3_gw_tera_date || record.cr8b3_gw_date_time || "",
-    employeeCode: fallbackEmployeeCode || record.cr8b3_name || "—",
+    employeeCode: fallbackEmployeeCode || record.cr8b3_name || "--",
     employeeName: record.cr8b3_gw_employee_idname || fallbackEmployeeName,
     status: (record.cr8b3_gw_attendence || "Unknown") as Exclude<AttendanceStatus, "All">,
     date: formatDisplayDate(record.cr8b3_gw_tera_date || record.cr8b3_gw_date_time),
@@ -115,16 +123,8 @@ function createAttendanceRows(records: AttendanceRecord[], fallbackEmployeeCode:
   }));
 }
 
-function getDisplayName(officeProfile?: GraphUser_V1, employeeRecord?: EmployeeRecord): string {
+function getDisplayName(officeProfile?: AppProfile, employeeRecord?: EmployeeRecord): string {
   return officeProfile?.displayName || employeeRecord?.cr8b3_gw_name || "Employee";
-}
-
-function normalizeEmail(value?: string): string {
-  return value?.trim().toLowerCase() ?? "";
-}
-
-function escapeODataString(value: string): string {
-  return value.replace(/'/g, "''");
 }
 
 function formatUnknownError(error: unknown, fallback: string): string {
@@ -146,72 +146,35 @@ function formatUnknownError(error: unknown, fallback: string): string {
     if (typeof nestedMessage === "string" && nestedMessage) {
       return nestedMessage;
     }
-
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return fallback;
-    }
   }
 
   return fallback;
 }
 
-async function fetchPagedAttendance(filter: string): Promise<AttendanceRecord[]> {
-  const allRecords: AttendanceRecord[] = [];
-  let skipToken: string | undefined;
+async function fetchAttendance(employeeId: string, monthOption: MonthOption, selectedStatus?: string): Promise<AttendanceRecord[]> {
+  const params = new URLSearchParams({
+    employeeId,
+    month: String(monthOption.monthNumber),
+    year: String(monthOption.year),
+  });
 
-  do {
-    const result = await Cr8b3_gwia_teramind_reportsService.getAll({
-      filter,
-      orderBy: ["cr8b3_gw_tera_date asc"],
-      maxPageSize: 5000,
-      skipToken,
-    });
-
-    if (!result.success || !result.data) {
-      throw result.error ?? new Error("Unable to load attendance records from Dataverse.");
-    }
-
-    allRecords.push(...result.data);
-    skipToken = result.skipToken;
-  } while (skipToken);
-
-  return allRecords;
-}
-
-async function fetchAttendanceWithFallback(employeeId: string, monthOption: MonthOption, selectedStatus?: string): Promise<AttendanceRecord[]> {
-  const numericFilter = buildAttendanceFilter(employeeId, monthOption, selectedStatus, false);
-  const stringFilter = buildAttendanceFilter(employeeId, monthOption, selectedStatus, true);
-
-  try {
-    return await fetchPagedAttendance(numericFilter);
-  } catch {
-    return fetchPagedAttendance(stringFilter);
+  if (selectedStatus && selectedStatus !== "All") {
+    params.set("status", selectedStatus);
   }
+
+  const response = await apiGetJson<AttendanceResponse>(`/api/attendance?${params.toString()}`);
+  return response.data || [];
 }
 
-async function fetchPagedExceptions(filter: string): Promise<ExceptionRecord[]> {
-  const allRecords: ExceptionRecord[] = [];
-  let skipToken: string | undefined;
+async function fetchExceptions(employeeId: string, monthOption: MonthOption): Promise<ExceptionRecord[]> {
+  const params = new URLSearchParams({
+    employeeId,
+    month: String(monthOption.monthNumber),
+    year: String(monthOption.year),
+  });
 
-  do {
-    const result = await Cr8b3_gwia_employee_exceptionsesService.getAll({
-      filter,
-      orderBy: ["cr8b3_gw_event_date asc"],
-      maxPageSize: 5000,
-      skipToken,
-    });
-
-    if (!result.success || !result.data) {
-      throw result.error ?? new Error("Unable to load attendance exception records from Dataverse.");
-    }
-
-    allRecords.push(...result.data);
-    skipToken = result.skipToken;
-  } while (skipToken);
-
-  return allRecords;
+  const response = await apiGetJson<ExceptionResponse>(`/api/exceptions?${params.toString()}`);
+  return response.data || [];
 }
 
 function formatDateKey(value?: string): string {
@@ -295,50 +258,11 @@ function normalizeStatusText(value?: string): string {
   return value?.trim().toLowerCase() ?? "";
 }
 
-function buildExceptionFilter(employeeId: string, monthOption: MonthOption, useQuotedMonthYear = false): string {
-  const monthValue = useQuotedMonthYear ? `'${monthOption.monthNumber}'` : `${monthOption.monthNumber}`;
-  const yearValue = useQuotedMonthYear ? `'${monthOption.year}'` : `${monthOption.year}`;
-  return [
-    `_cr8b3_gw_emp_id_value eq ${employeeId}`,
-    `cr8b3_gw_month eq ${monthValue}`,
-    `cr8b3_gw_year eq ${yearValue}`,
-  ].join(" and ");
-}
-
-async function fetchExceptionsWithFallback(employeeId: string, monthOption: MonthOption): Promise<ExceptionRecord[]> {
-  const numericFilter = buildExceptionFilter(employeeId, monthOption, false);
-  const stringFilter = buildExceptionFilter(employeeId, monthOption, true);
-
-  try {
-    return await fetchPagedExceptions(numericFilter);
-  } catch {
-    return fetchPagedExceptions(stringFilter);
-  }
-}
-
-function buildAttendanceFilter(employeeId: string, monthOption: MonthOption, selectedStatus?: string, useQuotedMonthYear = false): string {
-  const monthValue = useQuotedMonthYear ? `'${monthOption.monthNumber}'` : `${monthOption.monthNumber}`;
-  const yearValue = useQuotedMonthYear ? `'${monthOption.year}'` : `${monthOption.year}`;
-  const filters = [
-    `_cr8b3_gw_employee_id_value eq ${employeeId}`,
-    `cr8b3_gw_month eq ${monthValue}`,
-    `cr8b3_gw_year eq ${yearValue}`,
-  ];
-
-  if (selectedStatus && selectedStatus !== "All") {
-    filters.push(`cr8b3_gw_attendence eq '${escapeODataString(selectedStatus)}'`);
-  }
-
-  return filters.join(" and ");
-}
-
 export function AttendanceSection({
   officeProfile,
   employeeRecord,
-  employeeRecords,
-  autoEmployeeRecords,
   currentUserEmail,
-  isAutoAgent,
+  targetEmployeeId,
   autoAgentEmployeeCode,
   onClose,
 }: AttendanceSectionProps) {
@@ -356,42 +280,33 @@ export function AttendanceSection({
   });
 
   const employeeName = getDisplayName(officeProfile, employeeRecord);
-  const employeeCode = autoAgentEmployeeCode || employeeRecord?.cr8b3_name || "—";
+  const employeeCode = autoAgentEmployeeCode || employeeRecord?.cr8b3_name || "--";
   const [selectedStatus, setSelectedStatus] = useState<AttendanceStatus>("All");
   const [selectedMonth, setSelectedMonth] = useState<string>("");
+
   useEffect(() => {
     let cancelled = false;
 
     const loadExceptionMasters = async () => {
-      const [parameterResult, statusResult] = await Promise.all([
-        Cr8b3_gwia_emp_exception_parameter_mastersService.getAll({
-          orderBy: ["cr8b3_gw_exception_parameter asc"],
-          top: 500,
-        }).catch((error) => ({ success: false, error }) as const),
-        Cr8b3_gwia_employee_status_mastersService.getAll({
-          orderBy: ["cr8b3_name asc"],
-          top: 500,
-        }).catch((error) => ({ success: false, error }) as const),
-      ]);
+      try {
+        const result = await apiGetJson<ExceptionMastersResponse>("/api/exception-masters");
+        if (cancelled) {
+          return;
+        }
 
-      if (cancelled) {
-        return;
+        setExceptionParameterRecords(result.parameters || []);
+        setEmployeeStatusRecords(result.statuses || []);
+        setExceptionModal((current) =>
+          current.parameter
+            ? current
+            : {
+                ...current,
+                parameter: result.parameters?.[0]?.cr8b3_gw_exception_parameter || "",
+              }
+        );
+      } catch (error) {
+        console.error("Failed to load exception masters", error);
       }
-
-      const parameterRecords = parameterResult.success && parameterResult.data ? parameterResult.data : [];
-      const statusRecords = statusResult.success && statusResult.data ? statusResult.data : [];
-
-      setExceptionParameterRecords(parameterRecords);
-      setEmployeeStatusRecords(statusRecords);
-
-      setExceptionModal((current) =>
-        current.parameter
-          ? current
-          : {
-              ...current,
-              parameter: parameterRecords[0]?.cr8b3_gw_exception_parameter || "",
-            }
-      );
     };
 
     void loadExceptionMasters();
@@ -406,15 +321,6 @@ export function AttendanceSection({
     () => monthOptions.find((option) => option.value === selectedMonth),
     [monthOptions, selectedMonth]
   );
-
-  const targetEmployeeId = useMemo(() => {
-    if (isAutoAgent) {
-      return employeeRecords.find((employee) => employee.cr8b3_name === autoAgentEmployeeCode)?.cr8b3_gw_employee_detailsid;
-    }
-
-    const userEmail = normalizeEmail(currentUserEmail);
-    return employeeRecords.find((employee) => normalizeEmail(employee.cr8b3_gw_official_mail_id) === userEmail)?.cr8b3_gw_employee_detailsid;
-  }, [autoAgentEmployeeCode, currentUserEmail, employeeRecords, isAutoAgent]);
 
   useEffect(() => {
     if (!selectedMonth && monthOptions[0]?.value) {
@@ -441,18 +347,11 @@ export function AttendanceSection({
       setLoadError(undefined);
 
       try {
-        const [statusRecords, filteredRecords] = await Promise.all([
-          fetchAttendanceWithFallback(targetEmployeeId, selectedMonthOption),
-          fetchAttendanceWithFallback(targetEmployeeId, selectedMonthOption, selectedStatus),
+        const [statusRecords, filteredRecords, exceptions] = await Promise.all([
+          fetchAttendance(targetEmployeeId, selectedMonthOption),
+          fetchAttendance(targetEmployeeId, selectedMonthOption, selectedStatus),
+          fetchExceptions(targetEmployeeId, selectedMonthOption),
         ]);
-
-        let exceptions: ExceptionRecord[] = [];
-        try {
-          exceptions = await fetchExceptionsWithFallback(targetEmployeeId, selectedMonthOption);
-        } catch (e) {
-          console.error("Failed to load exceptions", e);
-          exceptions = [];
-        }
 
         if (cancelled) {
           return;
@@ -467,7 +366,7 @@ export function AttendanceSection({
           return;
         }
 
-        setLoadError(error instanceof Error ? error.message : "Unable to load attendance records from Dataverse.");
+        setLoadError(error instanceof Error ? error.message : "Unable to load attendance records.");
         setExceptionRecords([]);
         setLoadState("error");
       }
@@ -554,34 +453,7 @@ export function AttendanceSection({
       }).format(new Date(exceptionModal.row.eventDateValue))
     : "";
 
-  const autoOfficialEmail = useMemo(() => {
-    if (!isAutoAgent) {
-      return undefined;
-    }
-
-    const signedInEmail = normalizeEmail(currentUserEmail);
-    const autoRecord = autoEmployeeRecords.find(
-      (record) => normalizeEmail(record.cr8b3_auto_gigmos_pro_id) === signedInEmail
-    );
-
-    if (!autoRecord?._cr8b3_auto_emp_code1_value) {
-      return undefined;
-    }
-
-    return employeeRecords.find(
-      (employee) => employee.cr8b3_gw_employee_detailsid === autoRecord._cr8b3_auto_emp_code1_value
-    )?.cr8b3_gw_official_mail_id;
-  }, [autoEmployeeRecords, currentUserEmail, employeeRecords, isAutoAgent]);
-
-  const submitEmployee = useMemo(() => {
-    if (isAutoAgent) {
-      const official = normalizeEmail(autoOfficialEmail);
-      return employeeRecords.find((employee) => normalizeEmail(employee.cr8b3_gw_official_mail_id) === official);
-    }
-
-    const official = normalizeEmail(currentUserEmail);
-    return employeeRecords.find((employee) => normalizeEmail(employee.cr8b3_gw_official_mail_id) === official);
-  }, [autoOfficialEmail, currentUserEmail, employeeRecords, isAutoAgent]);
+  const submitEmployee = employeeRecord;
 
   const openExceptionModal = (row: AttendanceRow) => {
     setExceptionModal({
@@ -691,7 +563,6 @@ export function AttendanceSection({
       };
 
       if (exceptionModal.attachment) {
-        // We only send the name initially; the content is uploaded in a separate step
         payload.cr8b3_gw_attachments_name = exceptionModal.attachment.name;
       }
 
@@ -700,29 +571,17 @@ export function AttendanceSection({
           `/cr8b3_gwia_employee_status_masters(${submittedStatusRecord.cr8b3_gwia_employee_status_masterid})`;
       }
 
-      // --- UNIFIED BACKEND TRANSACTION ---
-      // We send metadata in a header and the file in the body.
-      // The backend service handles: Record Creation -> GUID Retrieval -> Binary Storage.
-      console.log(`[Frontend] Initiating unified transaction via Backend Service...`);
-      
-      let resolvedContentType = exceptionModal.attachment?.type || "application/octet-stream";
-      if (exceptionModal.attachment && (!resolvedContentType || resolvedContentType === "application/octet-stream")) {
-         const ext = exceptionModal.attachment.name.split('.').pop()?.toLowerCase();
-         const mimeMap: Record<string, string> = { 'pdf': 'application/pdf', 'png': 'image/png', 'jpg': 'image/jpeg' };
-         resolvedContentType = mimeMap[ext || ''] || "application/pdf";
-      }
+      const resolvedContentType = exceptionModal.attachment?.type || "application/octet-stream";
+      const requestBody = exceptionModal.attachment ?? new Blob([]);
 
-      const fileBuffer = exceptionModal.attachment ? await exceptionModal.attachment.arrayBuffer() : new ArrayBuffer(0);
-
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
-      const response = await fetch(`${apiBase}/create-and-upload`, {
+      const response = await fetch(`${getApiBase()}/create-and-upload`, {
         method: "POST",
         headers: {
           "x-file-name": exceptionModal.attachment?.name || "none",
           "x-content-type": resolvedContentType,
-          "x-payload": encodeURIComponent(JSON.stringify(payload))
+          "x-payload": encodeURIComponent(JSON.stringify(payload)),
         },
-        body: fileBuffer
+        body: requestBody,
       });
 
       if (!response.ok) {
@@ -732,7 +591,6 @@ export function AttendanceSection({
 
       const result = await response.json();
       const createdRecord = result.data as ExceptionRecord;
-      console.log(`[Frontend] Success: Record ${result.id} persisted with attachment ✅`);
 
       setExceptionRecords((current) => [
         ...current,
@@ -794,7 +652,7 @@ export function AttendanceSection({
             <h2 className="section-title">Attendance Status</h2>
             <p className="section-copy">Review attendance logs, status values, and productive work time in the same workspace theme.</p>
           </div>
-  
+
           <div className="summary-stack summary-stack-horizontal">
             <div className="summary-card">
               <span className="summary-label">Employee</span>
@@ -802,7 +660,7 @@ export function AttendanceSection({
             </div>
             <div className="summary-card">
               <span className="summary-label">Email</span>
-              <strong className="summary-value">{officeProfile?.mail || employeeRecord?.cr8b3_gw_official_mail_id || "Not linked"}</strong>
+              <strong className="summary-value">{currentUserEmail || officeProfile?.mail || employeeRecord?.cr8b3_gw_official_mail_id || "Not linked"}</strong>
             </div>
           </div>
         </div>
@@ -850,7 +708,7 @@ export function AttendanceSection({
                 {loadState === "loading" && (
                   <div className="attendance-loading-box">
                     <h3 className="attendance-loading-title">Loading attendance...</h3>
-                    <p className="attendance-loading-subtitle">Fetching filtered records from Dataverse.</p>
+                    <p className="attendance-loading-subtitle">Fetching filtered records from your backend service.</p>
                   </div>
                 )}
 
@@ -928,7 +786,6 @@ export function AttendanceSection({
                 Close
               </button>
             </header>
-
             <div className="exception-modal-body">
               <div className="exception-form-grid">
                 <label className="exception-field exception-field-wide">

@@ -5,25 +5,12 @@ import path from "node:path";
 const require = createRequire(import.meta.url);
 
 const viteCli = path.join(path.dirname(require.resolve("vite/package.json")), "bin", "vite.js");
-const powerAppsCli = path.join(
-  path.dirname(require.resolve("@microsoft/power-apps-cli/package.json")),
-  "dist",
-  "Bin.js"
-);
 
 const children = [
   spawn(process.execPath, [viteCli, "--host", "0.0.0.0", "--port", "3000"], {
     stdio: "inherit",
     env: process.env,
   }),
-  spawn(
-    process.execPath,
-    [powerAppsCli, "run", "--local-app-url", "http://localhost:3000", "--port", "8080"],
-    {
-      stdio: "inherit",
-      env: process.env,
-    }
-  ),
   spawn(process.execPath, ["scripts/upload-service.mjs"], {
     stdio: "inherit",
     env: process.env,

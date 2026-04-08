@@ -1,9 +1,8 @@
-import type { GraphUser_V1, User } from "../../generated/models/Office365UsersModel";
-import type { EmployeeRecord } from "../../App";
+import type { AppManager, AppProfile, EmployeeRecord } from "../../App";
 
 type MyProfileSectionProps = {
-  officeProfile?: GraphUser_V1;
-  officeManager?: User;
+  officeProfile?: AppProfile;
+  officeManager?: AppManager;
   officePhoto?: string;
   employeeRecord?: EmployeeRecord;
 };
@@ -14,7 +13,7 @@ type DetailItem = {
   full?: boolean;
 };
 
-function getInitials(profile?: GraphUser_V1): string {
+function getInitials(profile?: AppProfile): string {
   const source = profile?.displayName || profile?.mail || profile?.userPrincipalName || "User";
   return (
     source
@@ -125,11 +124,17 @@ export function MyProfileSection({
   const workInfo: DetailItem[] = [
     {
       label: "Department",
-      value: cleanValue(employeeRecord?.cr8b3_gw_departmentname) || cleanValue(officeProfile?.department),
+      value:
+        cleanValue(employeeRecord?.cr8b3_gw_departmentname) ||
+        cleanValue(typeof employeeRecord?.cr8b3_gw_department === "string" ? employeeRecord.cr8b3_gw_department : undefined) ||
+        cleanValue(officeProfile?.department),
     },
     {
       label: "Manager",
-      value: cleanValue(employeeRecord?.cr8b3_gw_reporting_managername) || cleanValue(officeManager?.DisplayName),
+      value:
+        cleanValue(employeeRecord?.crf46_gw_emp_reporting_managername) ||
+        cleanValue(employeeRecord?.cr8b3_gw_reporting_managername) ||
+        cleanValue(officeManager?.DisplayName),
     },
     {
       label: "Designation",
@@ -187,18 +192,28 @@ export function MyProfileSection({
           <div>
             <p className="eyebrow">My Profile</p>
             <h2 className="section-title">{officeProfile?.displayName || employeeRecord?.cr8b3_gw_name || "Signed-in user"}</h2>
-            <p className="section-copy">Office 365 identity and matched employee details in one place.</p>
+            <p className="section-copy">Your employee profile and mapped master data in one place.</p>
           </div>
         </div>
 
         <div className="summary-stack summary-stack-profile">
           <div className="summary-card">
             <span className="summary-label">Department</span>
-            <strong>{cleanValue(employeeRecord?.cr8b3_gw_departmentname) || cleanValue(officeProfile?.department) || "—"}</strong>
+            <strong>
+              {cleanValue(employeeRecord?.cr8b3_gw_departmentname) ||
+                cleanValue(typeof employeeRecord?.cr8b3_gw_department === "string" ? employeeRecord.cr8b3_gw_department : undefined) ||
+                cleanValue(officeProfile?.department) ||
+                "—"}
+            </strong>
           </div>
           <div className="summary-card">
             <span className="summary-label">Manager</span>
-            <strong>{cleanValue(employeeRecord?.cr8b3_gw_reporting_managername) || cleanValue(officeManager?.DisplayName) || "—"}</strong>
+            <strong>
+              {cleanValue(employeeRecord?.crf46_gw_emp_reporting_managername) ||
+                cleanValue(employeeRecord?.cr8b3_gw_reporting_managername) ||
+                cleanValue(officeManager?.DisplayName) ||
+                "—"}
+            </strong>
           </div>
         </div>
       </div>
