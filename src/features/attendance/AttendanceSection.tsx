@@ -714,7 +714,8 @@ export function AttendanceSection({
 
       const fileBuffer = exceptionModal.attachment ? await exceptionModal.attachment.arrayBuffer() : new ArrayBuffer(0);
 
-      const response = await fetch("http://localhost:3001/create-and-upload", {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const response = await fetch(`${apiBase}/create-and-upload`, {
         method: "POST",
         headers: {
           "x-file-name": exceptionModal.attachment?.name || "none",
@@ -789,7 +790,7 @@ export function AttendanceSection({
       <section className="panel-card attendance-shell">
         <div className="section-header attendance-header">
           <div>
-            <p className="eyebrow">Attendance</p>
+            <p className="eyebrow">ATTENDANCE</p>
             <h2 className="section-title">Attendance Status</h2>
             <p className="section-copy">Review attendance logs, status values, and productive work time in the same workspace theme.</p>
           </div>
@@ -797,29 +798,27 @@ export function AttendanceSection({
           <div className="summary-stack summary-stack-horizontal">
             <div className="summary-card">
               <span className="summary-label">Employee</span>
-              <strong>{employeeName}</strong>
+              <strong className="summary-value">{employeeName}</strong>
             </div>
             <div className="summary-card">
               <span className="summary-label">Email</span>
-              <strong>{officeProfile?.mail || employeeRecord?.cr8b3_gw_official_mail_id || "Not linked"}</strong>
+              <strong className="summary-value">{officeProfile?.mail || employeeRecord?.cr8b3_gw_official_mail_id || "Not linked"}</strong>
             </div>
           </div>
         </div>
 
         <div className="dashboard-card attendance-dashboard-card">
           <div className="attendance-toolbar">
-            <div className="attendance-filter-group">
-              <label className="attendance-filter">
-                <span>Attendance Status:</span>
-                <select value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value as AttendanceStatus)}>
-                  {statusOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
+            <label className="attendance-filter">
+              <span>Attendance Status:</span>
+              <select value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value as AttendanceStatus)}>
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            </label>
 
             <label className="attendance-filter">
               <span>Month:</span>
@@ -849,9 +848,9 @@ export function AttendanceSection({
 
               <div className="attendance-table-body">
                 {loadState === "loading" && (
-                  <div className="status-card table-status">
-                    <p className="status-title">Loading attendance...</p>
-                    <p className="status-copy">Fetching filtered records from Dataverse.</p>
+                  <div className="attendance-loading-box">
+                    <h3 className="attendance-loading-title">Loading attendance...</h3>
+                    <p className="attendance-loading-subtitle">Fetching filtered records from Dataverse.</p>
                   </div>
                 )}
 

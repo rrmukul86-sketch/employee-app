@@ -458,8 +458,8 @@ export default function App() {
           hasAttendanceAccess ? (
             <SectionErrorBoundary>
               <ExceptionSection
-                userName={myOfficeProfile?.displayName}
-                userEmail={myOfficeProfile?.mail}
+                officeProfile={myOfficeProfile}
+                employeeRecord={myEmployeeRecord}
                 employeeRecords={employeeRecords}
                 autoEmployeeRecords={autoEmployeeRecords}
                 isAutoAgent={attendanceAccessInfo.isAutoAgent}

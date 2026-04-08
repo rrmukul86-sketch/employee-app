@@ -1,11 +1,9 @@
 import http from 'node:http';
 import https from 'node:https';
-import { readFile } from 'node:fs/promises';
 import { URL } from 'node:url';
 import 'dotenv/config';
-import mime from 'mime-types';
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 /**
  * Perform a request using the native https module to ensure headers are preserved exactly
@@ -34,7 +32,7 @@ function httpsRequest(method, url, headers, body) {
     });
 
     req.on('error', (err) => {
-      console.error(`[Backend-Service] HTTPS ${method} Error:`, err);
+      console.error(`[Backend-Service] HTTPS Error:`, err);
       reject(err);
     });
     if (body) req.write(body);
@@ -49,7 +47,7 @@ async function getAccessToken() {
   const tenantId = process.env.AZURE_TENANT_ID;
   const clientId = process.env.AZURE_CLIENT_ID;
   const clientSecret = process.env.AZURE_CLIENT_SECRET;
-  const resource = process.env.DATAVERSE_URL;
+  const resource = process.env.DATAVERSE_URL.replace(/\/$/, "");
 
   const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
   const body = new URLSearchParams({
@@ -74,19 +72,13 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-/**
- * Sanitizes filename to ASCII only as per reference
- */
 function asciiFilename(filename) {
   return filename.replace(/[^\x00-\x7F]/g, "_");
 }
 
-/**
- * Uploads a file to Dataverse via Resilient Multi-Method Logic
- */
 async function uploadToDataverse(token, recordId, fieldName, fileName, contentType, buffer) {
-  const resource = process.env.DATAVERSE_URL;
-  const baseUrl = `${resource}api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}`;
+  const resource = process.env.DATAVERSE_URL.replace(/\/$/, "");
+  const baseUrl = `${resource}/api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}`;
 
   const baseHeaders = {
     "Authorization": `Bearer ${token}`,
@@ -100,33 +92,23 @@ async function uploadToDataverse(token, recordId, fieldName, fileName, contentTy
 
   const attempts = [
     { method: 'PATCH', url: baseUrl, label: 'Standard PATCH' },
-    { method: 'PUT', url: baseUrl, label: 'Base PUT' },
     { method: 'PUT', url: `${baseUrl}/$value`, label: 'Legacy /$value PUT' }
   ];
 
   for (const attempt of attempts) {
     try {
-      process.stdout.write(`    > Trying ${attempt.label}... `);
+      console.log(`    > Trying ${attempt.label}...`);
       const response = await httpsRequest(attempt.method, attempt.url, baseHeaders, buffer);
-      
-      if (response.ok) {
-        console.log(`Success ✅ (${response.status})`);
-        return true;
-      }
-      console.log(`Failed (${response.status})`);
-    } catch (err) {
-      console.log(`Error ❌ (${err.message})`);
-    }
+      if (response.ok) return true;
+    } catch (err) {}
   }
-
-  throw new Error("All upload methods (PATCH, PUT, PUT/$value) were rejected by Dataverse.");
+  throw new Error("All upload methods were rejected.");
 }
 
 const server = http.createServer(async (req, res) => {
-  // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-record-id, x-file-name, x-content-type, x-payload');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-record-id, x-file-name, x-payload');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -136,83 +118,87 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'POST' && req.url === '/create-and-upload') {
     try {
-      const fileName = req.headers['x-file-name'];
-      const contentType = "application/octet-stream"; // Header initial
+      const fileName = req.headers['x-file-name'] || 'attachment';
       const payloadStr = req.headers['x-payload'];
-
-      console.log(`\n[STEP 0] Incoming Unified Transaction Request: ${fileName}`);
-      
-      if (!payloadStr) {
-        throw new Error('Step 0 Failed: Missing x-payload metadata header.');
-      }
-
-      // Collect binary
-      process.stdout.write(`[STEP 1] Collecting binary stream... `);
       const chunks = [];
-      for await (const chunk of req) { chunks.push(chunk); }
+      for await (const chunk of req) chunks.push(chunk);
       const buffer = Buffer.concat(chunks);
-      console.log(`Success ✅ (${buffer.length} bytes)`);
-
       const payload = JSON.parse(decodeURIComponent(payloadStr));
 
-      // 1. Authenticate
-      process.stdout.write(`[STEP 2] Authenticating with Azure AD... `);
       const token = await getAccessToken();
-      console.log(`Success ✅`);
-
-      // 2. CREATE THE RECORD
-      process.stdout.write(`[STEP 3] Creating Dataverse Record... `);
-      const createResponse = await fetch(`${process.env.DATAVERSE_URL}api/data/v9.1/cr8b3_gwia_employee_exceptionses`, {
+      const resource = process.env.DATAVERSE_URL.replace(/\/$/, "");
+      
+      const createResponse = await fetch(`${resource}/api/data/v9.1/cr8b3_gwia_employee_exceptionses`, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Prefer": "return=representation" },
         body: JSON.stringify(payload)
       });
-
-      if (!createResponse.ok) {
-        const err = await createResponse.text();
-        console.log(`FAILED ❌`);
-        throw new Error(`Step 3 Failed: ${createResponse.status} ${err}`);
-      }
-
+      if (!createResponse.ok) throw new Error("Record creation failed.");
+      
       const createdRecord = await createResponse.json();
       const recordId = createdRecord.cr8b3_gwia_employee_exceptionsid;
-      console.log(`Success ✅ (ID: ${recordId})`);
-
-      // 3. UPLOAD THE ATTACHMENT
+      
       if (buffer.length > 0) {
-        process.stdout.write(`[STEP 4] Storing Binary Attachment... \n`);
-        await uploadToDataverse(token, recordId, 'cr8b3_gw_attachments', fileName, contentType, buffer);
-        console.log(`    🎉 SUCCESS: Attachment persisted!`);
-      } else {
-        console.log(`[STEP 4] Skipped (No attachment found)`);
+        await uploadToDataverse(token, recordId, 'cr8b3_gw_attachments', fileName, 'application/octet-stream', buffer);
       }
 
-      console.log(`\n🎉 TRANSACTION COMPLETE: Record and attachment persisted successfully!\n`);
-
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ 
-        success: true, 
-        message: 'Transaction finished successfully',
-        id: recordId,
-        data: createdRecord
-      }));
-      
+      res.end(JSON.stringify({ success: true, id: recordId, data: createdRecord }));
     } catch (err) {
-      console.error(`\n❌ TRANSACTION FAILED:`, err.message);
       res.writeHead(500, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: err.message }));
     }
-  } else {
+  } 
+  
+  else if (req.method === 'GET' && (req.url.startsWith('/download') || req.url.startsWith('/display'))) {
+    try {
+      const mode = req.url.startsWith('/download') ? 'DOWNLOAD' : 'DISPLAY';
+      const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
+      const recordId = urlParams.get('recordId');
+      const fileName = urlParams.get('fileName') || 'attachment.file';
+      
+      const token = await getAccessToken();
+      const resource = process.env.DATAVERSE_URL.replace(/\/$/, "");
+      const fieldName = 'cr8b3_gw_attachments';
+      const endpoints = [
+        `api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}/$value`,
+        `api/data/v9.1/cr8b3_gwia_employee_exceptions(${recordId})/${fieldName}/$value`
+      ];
+
+      for (const endpoint of endpoints) {
+        const response = await fetch(`${resource}/${endpoint}`, {
+          headers: { "Authorization": `Bearer ${token}`, "OData-Version": "4.0", "OData-MaxVersion": "4.0" }
+        });
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          let contentType = response.headers.get('Content-Type') || 'application/octet-stream';
+          
+          if (contentType === 'application/octet-stream') {
+             const ext = fileName.split('.').pop().toLowerCase();
+             const map = { 'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'pdf': 'application/pdf' };
+             contentType = map[ext] || contentType;
+          }
+
+          const headers = { 'Content-Type': contentType, 'Content-Length': buffer.byteLength };
+          if (mode === 'DOWNLOAD') headers['Content-Disposition'] = `attachment; filename="${asciiFilename(fileName)}"`;
+          res.writeHead(200, headers);
+          res.end(Buffer.from(buffer));
+          return;
+        }
+      }
+      throw new Error("File not found.");
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: err.message }));
+    }
+  }
+  
+  else {
     res.writeHead(404);
     res.end();
   }
 });
 
 server.listen(PORT, () => {
-  console.log(`\n🚀 [V3-RESILIENT] Dataverse Backend Upload Service running at http://localhost:${PORT}`);
-  console.log(`Using Azure App ID: ${process.env.AZURE_CLIENT_ID}\n`);
+  console.log(`\n🚀 [UNIFIED GATEWAY] Dataverse Service running at http://localhost:${PORT}`);
 });

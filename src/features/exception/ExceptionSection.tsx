@@ -6,6 +6,7 @@ import type { Cr8b3_gwia_emp_exception_parameter_masters } from "../../generated
 import type { Cr8b3_gwia_employee_status_masters } from "../../generated/models/Cr8b3_gwia_employee_status_mastersModel";
 import { Cr8b3_gwia_emp_exception_parameter_mastersService } from "../../generated/services/Cr8b3_gwia_emp_exception_parameter_mastersService";
 import { Cr8b3_gwia_employee_status_mastersService } from "../../generated/services/Cr8b3_gwia_employee_status_mastersService";
+import type { GraphUser_V1 } from "../../generated/models/Office365UsersModel";
 
 type ExceptionRecord = Cr8b3_gwia_employee_exceptionses;
 
@@ -19,20 +20,15 @@ type MonthOption = {
 function getRecentMonthOptions(count: number): MonthOption[] {
   const today = new Date();
   const options: MonthOption[] = [];
-
   for (let index = 0; index < count; index += 1) {
     const current = new Date(today.getFullYear(), today.getMonth() - index, 1);
-    const monthNumber = current.getMonth() + 1;
-    const year = current.getFullYear();
-    const value = `${year}-${String(monthNumber).padStart(2, "0")}`;
-    const label = new Intl.DateTimeFormat("en-US", {
-      month: "long",
-      year: "numeric",
-    }).format(current);
-
-    options.push({ value, label, monthNumber, year });
+    options.push({ 
+      value: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`, 
+      label: new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(current),
+      monthNumber: current.getMonth() + 1, 
+      year: current.getFullYear() 
+    });
   }
-
   return options;
 }
 
@@ -41,68 +37,21 @@ function normalizeEmail(value?: string): string {
 }
 
 function buildExceptionFilter(employeeId: string, monthOption: MonthOption, useQuotedMonthYear = false): string {
-  const monthValue = useQuotedMonthYear ? `'${monthOption.monthNumber}'` : `${monthOption.monthNumber}`;
-  const yearValue = useQuotedMonthYear ? `'${monthOption.year}'` : `${monthOption.year}`;
-  return [
-    `_cr8b3_gw_emp_id_value eq ${employeeId}`,
-    `cr8b3_gw_month eq ${monthValue}`,
-    `cr8b3_gw_year eq ${yearValue}`,
-  ].join(" and ");
-}
-
-async function fetchPagedExceptions(filter: string): Promise<ExceptionRecord[]> {
-  const allRecords: ExceptionRecord[] = [];
-  let skipToken: string | undefined;
-
-  do {
-    const result = await Cr8b3_gwia_employee_exceptionsesService.getAll({
-      filter,
-      maxPageSize: 5000,
-      skipToken,
-    });
-
-    if (!result.success || !result.data) {
-      throw result.error ?? new Error("Unable to load exceptions from Dataverse.");
-    }
-
-    allRecords.push(...result.data);
-    skipToken = result.skipToken;
-  } while (skipToken);
-
-  return allRecords;
-}
-
-async function fetchExceptionsWithFallback(employeeId: string, monthOption: MonthOption): Promise<ExceptionRecord[]> {
-  const numericFilter = buildExceptionFilter(employeeId, monthOption, false);
-  const stringFilter = buildExceptionFilter(employeeId, monthOption, true);
-
-  try {
-    return await fetchPagedExceptions(numericFilter);
-  } catch {
-    return fetchPagedExceptions(stringFilter);
-  }
+  const m = useQuotedMonthYear ? `'${monthOption.monthNumber}'` : `${monthOption.monthNumber}`;
+  const y = useQuotedMonthYear ? `'${monthOption.year}'` : `${monthOption.year}`;
+  return [`_cr8b3_gw_emp_id_value eq ${employeeId}`, `cr8b3_gw_month eq ${m}`, `cr8b3_gw_year eq ${y}`].join(" and ");
 }
 
 function formatDisplayDate(value?: string): string {
-  if (!value) {
-    return "—";
-  }
+  if (!value) return "—";
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
-    .format(parsed)
-    .replace(/ /g, "-");
+  if (Number.isNaN(parsed.getTime())) return value;
+  return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(parsed).replace(/ /g, "-");
 }
 
 type ExceptionSectionProps = {
-  userName?: string;
-  userEmail?: string;
+  officeProfile?: GraphUser_V1;
+  employeeRecord?: EmployeeRecord;
   employeeRecords: EmployeeRecord[];
   autoEmployeeRecords: AutoEmployeeRecord[];
   isAutoAgent: boolean;
@@ -112,10 +61,9 @@ type ExceptionSectionProps = {
 };
 
 export function ExceptionSection({
-  userName = "Employee",
-  userEmail = "",
+  officeProfile,
+  employeeRecord,
   employeeRecords,
-  //autoEmployeeRecords,
   isAutoAgent,
   autoAgentEmployeeCode,
   currentUserEmail,
@@ -127,76 +75,37 @@ export function ExceptionSection({
 
   const [exceptions, setExceptions] = useState<ExceptionRecord[]>([]);
   const [loadState, setLoadState] = useState<"idle" | "loading" | "error" | "ready">("idle");
-  const [loadError, setLoadError] = useState<string>();
 
-  // Master Data State
   const [parameterMasters, setParameterMasters] = useState<Cr8b3_gwia_emp_exception_parameter_masters[]>([]);
   const [statusMasters, setStatusMasters] = useState<Cr8b3_gwia_employee_status_masters[]>([]);
 
-  // Sorting State
-  // sortColumnDate true = Date Created (cr8b3_gw_date / cr8b3_gw_datetime / createdon)
-  // sortColumnDate false = Event Date (cr8b3_gw_event_date)
   const [sortColumnDate, setSortColumnDate] = useState<boolean>(false);
-  const [sortAscending, setSortAscending] = useState<boolean>(false); // False -> Descending
+  const [sortAscending, setSortAscending] = useState<boolean>(false);
 
   const [selectedEx, setSelectedEx] = useState<ExceptionRecord | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  const handleViewDetails = (id: string) => {
-    const raw = exceptions.find(x => x.cr8b3_gwia_employee_exceptionsid === id);
-    if (raw) {
-      setSelectedEx(raw);
-      setIsModalOpen(true);
-    }
-  };
+  const employeeName = officeProfile?.displayName || employeeRecord?.cr8b3_gw_name || "Employee";
+  const employeeEmail = officeProfile?.mail || employeeRecord?.cr8b3_gw_official_mail_id || "—";
 
   const handleDownloadAttachment = async (ex: ExceptionRecord) => {
     if (!ex.cr8b3_gwia_employee_exceptionsid) return;
-    
     try {
       const recordId = ex.cr8b3_gwia_employee_exceptionsid;
-      const fieldName = "cr8b3_gw_attachments";
-      
-      const downloadUrl = `https://staging-gig.crm.dynamics.com/api/data/v9.1/cr8b3_gwia_employee_exceptionses(${recordId})/${fieldName}/$value`;
-      
-      const client = (Cr8b3_gwia_employee_exceptionsesService as any).client;
-      const provider = client._client?._dataverseProvider || client._client?._connectorProvider || client._dataverseProvider || client._connectorProvider;
-      
-      if (!provider) throw new Error("Unified data provider not accessible.");
-      const authHeaders = await provider.getHeaders();
-
-      const response = await fetch(downloadUrl, {
-        headers: { ...authHeaders }
-      });
-
-      if (!response.ok) throw new Error(`Download failed: ${response.status}`);
-
-      // Extract critical metadata from Dataverse response headers
-      const contentType = response.headers.get("Content-Type") || "application/octet-stream";
-      const headerFileName = response.headers.get("x-ms-file-name");
-      
-      // Prioritize the server-provided filename if available, then the record metadata
-      const finalFileName = headerFileName ? decodeURIComponent(headerFileName) : (ex.cr8b3_gw_attachments_name || "attachment");
-
-      // Use ArrayBuffer to avoid "Blob-in-a-Blob" issues
-      const buffer = await response.arrayBuffer();
-      const finalBlob = new Blob([buffer], { type: contentType });
-      
-      const url = window.URL.createObjectURL(finalBlob);
+      const fileName = ex.cr8b3_gw_attachments_name || "attachment.file";
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      const downloadUrl = `${apiBase}/download?recordId=${recordId}&fileName=${encodeURIComponent(fileName)}`;
+      const response = await fetch(downloadUrl);
+      if (!response.ok) throw new Error("Download failed.");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = finalFileName;
-      
-      console.log(`Downloading ${finalFileName} as ${contentType}...`);
-      document.body.appendChild(a);
-      a.click();
-      
+      a.href = url; a.download = fileName;
+      document.body.appendChild(a); a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (err) {
-      console.error("Attachment download failed:", err);
-      alert("Unable to download the attachment. Please try again later.");
-    }
+    } catch { alert("Download failed. Check Port 3001."); }
   };
 
   const getStatusDisplay = (ex: ExceptionRecord) => {
@@ -217,219 +126,137 @@ export function ExceptionSection({
     return name || "Unnamed Parameter";
   };
 
-  const selectedMonthOption = useMemo(
-    () => monthOptions.find((option) => option.value === selectedMonth),
-    [monthOptions, selectedMonth]
-  );
+  const selectedMonthOption = useMemo(() => monthOptions.find(o => o.value === selectedMonth), [monthOptions, selectedMonth]);
 
   const targetEmployeeId = useMemo(() => {
-    if (isAutoAgent) {
-      return employeeRecords.find((employee) => employee.cr8b3_name === autoAgentEmployeeCode)?.cr8b3_gw_employee_detailsid;
-    }
+    if (isAutoAgent) return employeeRecords.find(e => e.cr8b3_name === autoAgentEmployeeCode)?.cr8b3_gw_employee_detailsid;
     const mail = normalizeEmail(currentUserEmail);
-    return employeeRecords.find((employee) => normalizeEmail(employee.cr8b3_gw_official_mail_id) === mail)?.cr8b3_gw_employee_detailsid;
+    return employeeRecords.find(e => normalizeEmail(e.cr8b3_gw_official_mail_id) === mail)?.cr8b3_gw_employee_detailsid;
   }, [autoAgentEmployeeCode, currentUserEmail, employeeRecords, isAutoAgent]);
 
-  // Load Masters
   useEffect(() => {
     let cancelled = false;
-
     const loadMasters = async () => {
-      try {
-        const [pResult, sResult] = await Promise.all([
-          Cr8b3_gwia_emp_exception_parameter_mastersService.getAll({ top: 500 }),
-          Cr8b3_gwia_employee_status_mastersService.getAll({ top: 500 }),
-        ]);
-
-        if (cancelled) return;
-
-        if (pResult.success && pResult.data) {
-          setParameterMasters(pResult.data);
-        }
-        if (sResult.success && sResult.data) {
-          setStatusMasters(sResult.data);
-        }
-      } catch (err) {
-        console.error("Failed to load exception masters:", err);
-      }
+      const [pResult, sResult] = await Promise.all([
+        Cr8b3_gwia_emp_exception_parameter_mastersService.getAll({ top: 500 }),
+        Cr8b3_gwia_employee_status_mastersService.getAll({ top: 500 }),
+      ]);
+      if (cancelled) return;
+      if (pResult.success && pResult.data) setParameterMasters(pResult.data);
+      if (sResult.success && sResult.data) setStatusMasters(sResult.data);
     };
-
-    void loadMasters();
-
-    return () => {
-      cancelled = true;
-    };
+    loadMasters();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
-    if (!targetEmployeeId || !selectedMonthOption) {
-      setExceptions([]);
-      setLoadState("ready");
-      return;
-    }
-
+    if (!targetEmployeeId || !selectedMonthOption) { setExceptions([]); setLoadState("ready"); return; }
     let cancelled = false;
-
     const loadData = async () => {
       setLoadState("loading");
-      setLoadError(undefined);
-
       try {
-        const records = await fetchExceptionsWithFallback(targetEmployeeId, selectedMonthOption);
-        if (!cancelled) {
-          setExceptions(records);
-          setLoadState("ready");
+        const numericFilter = buildExceptionFilter(targetEmployeeId, selectedMonthOption, false);
+        const stringFilter = buildExceptionFilter(targetEmployeeId, selectedMonthOption, true);
+        let records: any = [];
+        try {
+          const res = await Cr8b3_gwia_employee_exceptionsesService.getAll({ filter: numericFilter, maxPageSize: 5000 });
+          records = res.data || [];
+        } catch {
+          const res = await Cr8b3_gwia_employee_exceptionsesService.getAll({ filter: stringFilter, maxPageSize: 5000 });
+          records = res.data || [];
         }
-      } catch (error) {
-        if (!cancelled) {
-          setLoadError(error instanceof Error ? error.message : "Unable to load data.");
-          setExceptions([]);
-          setLoadState("error");
-        }
-      }
+        if (!cancelled) { setExceptions(records); setLoadState("ready"); }
+      } catch { if (!cancelled) { setExceptions([]); setLoadState("error"); } }
     };
-
-    void loadData();
-
-    return () => {
-      cancelled = true;
-    };
+    loadData();
+    return () => { cancelled = true; };
   }, [targetEmployeeId, selectedMonthOption]);
 
   const mappedAndSortedExceptions = useMemo(() => {
-    // 1. Map Dataverse records to display object format
-    const rowMapper = exceptions.map((ex) => {
-      // Dataverse uses _cr8b3_gw_emp_exception_parameter_id_value for lookup name
-      let parameterName = ex.cr8b3_gw_emp_exception_parameter_idname;
-      if (!parameterName && ex._cr8b3_gw_emp_exception_parameter_id_value) {
-        const match = parameterMasters.find(m => m.cr8b3_gwia_emp_exception_parameter_masterid === ex._cr8b3_gw_emp_exception_parameter_id_value);
-        parameterName = match?.cr8b3_gw_exception_parameter || ex._cr8b3_gw_emp_exception_parameter_id_value;
-      }
-      if (!parameterName) parameterName = "Unnamed Parameter";
-
-      let statusName = ex.cr8b3_gw_employee_exception_status_idname;
-      if (!statusName && ex._cr8b3_gw_employee_exception_status_id_value) {
-        const match = statusMasters.find(m => m.cr8b3_gwia_employee_status_masterid === ex._cr8b3_gw_employee_exception_status_id_value);
-        statusName = match?.cr8b3_gw_emp_status || match?.cr8b3_name || ex._cr8b3_gw_employee_exception_status_id_value;
-      }
-      if (!statusName) statusName = "Pending";
-
-      const dateCreatedRaw = ex.cr8b3_gw_datetime || ex.cr8b3_gw_date || ex.createdon;
-      const eventDateRaw = ex.cr8b3_gw_event_date;
-
-      return {
-        id: ex.cr8b3_gwia_employee_exceptionsid || Math.random().toString(),
-        rawDateCreated: dateCreatedRaw ? new Date(dateCreatedRaw).getTime() : 0,
-        rawEventDate: eventDateRaw ? new Date(eventDateRaw).getTime() : 0,
-        dateCreated: formatDisplayDate(dateCreatedRaw),
-        eventDate: formatDisplayDate(eventDateRaw),
-        parameter: parameterName,
-        exceptionId: ex.cr8b3_name || "—",
-        status: statusName,
-      };
-    });
-
-    // 2. Filter via Search
+    const rowMapper = exceptions.map((ex) => ({
+      id: ex.cr8b3_gwia_employee_exceptionsid || Math.random().toString(),
+      rawDateCreated: new Date(ex.cr8b3_gw_datetime || ex.cr8b3_gw_date || ex.createdon || 0).getTime(),
+      rawEventDate: new Date(ex.cr8b3_gw_event_date || 0).getTime(),
+      dateCreated: formatDisplayDate(ex.cr8b3_gw_datetime || ex.cr8b3_gw_date || ex.createdon),
+      eventDate: formatDisplayDate(ex.cr8b3_gw_event_date),
+      parameter: getParameterDisplay(ex),
+      exceptionId: ex.cr8b3_name || "—",
+      status: getStatusDisplay(ex),
+    }));
     const query = searchText.toLowerCase().trim();
-    const filteredRows = query
-      ? rowMapper.filter(
-          (ex) =>
-            ex.parameter.toLowerCase().includes(query) ||
-            ex.exceptionId.toLowerCase().includes(query) ||
-            ex.status.toLowerCase().includes(query) ||
-            ex.dateCreated.toLowerCase().includes(query) ||
-            ex.eventDate.toLowerCase().includes(query)
-        )
-      : rowMapper;
-
-    // 3. Sort Client-Side
-    return filteredRows.sort((a, b) => {
-      const valA = sortColumnDate ? a.rawDateCreated : a.rawEventDate;
-      const valB = sortColumnDate ? b.rawDateCreated : b.rawEventDate;
-      
-      if (valA === valB) return 0;
-      
-      if (sortAscending) {
-        return valA > valB ? 1 : -1;
-      } else {
-        return valA < valB ? 1 : -1;
-      }
-    });
-
+    return rowMapper
+      .filter(ex => !query || Object.values(ex).some(v => String(v).toLowerCase().includes(query)))
+      .sort((a,b) => {
+        const valA = sortColumnDate ? a.rawDateCreated : a.rawEventDate;
+        const valB = sortColumnDate ? b.rawDateCreated : b.rawEventDate;
+        return sortAscending ? valA - valB : valB - valA;
+      });
   }, [exceptions, searchText, sortColumnDate, sortAscending, parameterMasters, statusMasters]);
+
+  const isImage = (filename?: string) => {
+    const ext = filename?.split('.').pop()?.toLowerCase();
+    return ['png', 'jpg', 'jpeg', 'gif'].includes(ext || '');
+  };
+
+  const handlePreview = (record: ExceptionRecord) => {
+    const filename = record.cr8b3_gw_attachments_name || "";
+    if (isImage(filename)) {
+      setIsPreviewOpen(true);
+    } else {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:3001";
+      window.open(`${apiBase}/display?recordId=${record.cr8b3_gwia_employee_exceptionsid}`, '_blank');
+    }
+  };
 
   return (
     <section className="panel-card attendance-shell">
       <div className="section-header attendance-header">
         <div>
-          <p className="eyebrow">Exception</p>
+          <p className="eyebrow">EXCEPTION</p>
           <h2 className="section-title">Exception Details</h2>
-          <p className="section-copy">Manage your exceptions selectively applied based on month and year.</p>
+          <p className="section-copy">Manage and review your exception requests selectively applied based on month and year.</p>
         </div>
         <div className="summary-stack summary-stack-horizontal">
           <div className="summary-card">
             <span className="summary-label">Employee</span>
-            <strong>{userName}</strong>
+            <strong className="summary-value">{employeeName}</strong>
           </div>
           <div className="summary-card">
             <span className="summary-label">Email</span>
-            <strong>{userEmail || "Not linked"}</strong>
+            <strong className="summary-value">{employeeEmail}</strong>
           </div>
         </div>
       </div>
 
       <div className="dashboard-card attendance-dashboard-card">
-        <div className="attendance-toolbar" style={{ justifyContent: "space-between" }}>
-          <div className="search-shell" style={{ maxWidth: "300px" }}>
+        <div className="attendance-toolbar">
+          <div className="search-shell" style={{ maxWidth: '320px' }}>
             <span className="search-icon">🔍</span>
-            <input
-              type="text"
-              className="search-input search-input-dashboard"
-              placeholder="Search exceptions..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
+            <input 
+              type="text" 
+              className="search-input" 
+              placeholder="Search exceptions..." 
+              value={searchText} 
+              onChange={(e) => setSearchText(e.target.value)} 
             />
           </div>
+          
           <label className="attendance-filter">
             <span>Month:</span>
             <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
-              {monthOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
+              {monthOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </label>
         </div>
 
         <div className="attendance-table-wrap">
           <div className="attendance-table">
-            <div className="attendance-table-head" style={{ gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr 1fr" }}>
-              <span 
-                style={{ cursor: "pointer", userSelect: "none", color: sortColumnDate ? "#0078d4" : "inherit" }} 
-                onClick={() => {
-                  if (sortColumnDate) {
-                    setSortAscending(!sortAscending); // Toggle direction
-                  } else {
-                    setSortColumnDate(true);
-                    setSortAscending(false); // Default descending when switching to Date Created
-                  }
-                }}
-              >
-                Date Created {sortColumnDate ? (sortAscending ? "↑" : "↓") : "↕"}
+            <div className="attendance-table-head exception-table-head">
+              <span onClick={() => { setSortColumnDate(true); setSortAscending(!sortAscending); }} style={{ cursor: "pointer" }}>
+                Date Created {sortColumnDate ? (sortAscending ? "↑" : "↓") : ""}
               </span>
-              <span 
-                style={{ cursor: "pointer", userSelect: "none", color: !sortColumnDate ? "#0078d4" : "inherit" }}
-                onClick={() => {
-                  if (!sortColumnDate) {
-                    setSortAscending(!sortAscending); // Toggle direction
-                  } else {
-                    setSortColumnDate(false);
-                    setSortAscending(false); // Default descending when switching to Event Date
-                  }
-                }}
-              >
-                Event Date {!sortColumnDate ? (sortAscending ? "↑" : "↓") : "↕"}
+              <span onClick={() => { setSortColumnDate(false); setSortAscending(!sortAscending); }} style={{ cursor: "pointer" }}>
+                Event Date {!sortColumnDate ? (sortAscending ? "↑" : "↓") : ""}
               </span>
               <span>Parameter</span>
               <span>Exception ID</span>
@@ -438,30 +265,25 @@ export function ExceptionSection({
             </div>
             
             <div className="attendance-table-body">
-                {loadState === "loading" && (
-                  <div className="status-card table-status">
-                    <p className="status-title">Loading exceptions...</p>
-                  </div>
-                )}
+              {loadState === "loading" && (
+                <div className="attendance-loading-box">
+                  <h3 className="attendance-loading-title">Loading records...</h3>
+                  <p className="attendance-loading-subtitle">Fetching exception logs from Dataverse.</p>
+                </div>
+              )}
 
-                {loadState === "error" && (
-                  <div className="status-card status-card-error table-status">
-                    <p className="status-title">{loadError}</p>
-                  </div>
-                )}
+              {loadState === "error" && (
+                <div className="status-card status-card-error table-status">
+                  <p className="status-title">Exception data could not be loaded.</p>
+                  <p className="status-copy">There was an error connecting to the data source.</p>
+                </div>
+              )}
 
-                {loadState === "ready" && mappedAndSortedExceptions.length === 0 && (
-                  <div className="status-card table-status">
-                    <p className="status-title">No exceptions found.</p>
-                    <p className="status-copy">There are no exceptions for the selected period.</p>
-                  </div>
-                )}
-                
-              {loadState === "ready" && mappedAndSortedExceptions.map((ex) => (
-                <article key={ex.id} className="attendance-row" style={{ gridTemplateColumns: "1.5fr 1.5fr 1.5fr 1fr 1fr 1fr" }}>
+              {loadState === "ready" && mappedAndSortedExceptions.map(ex => (
+                <article key={ex.id} className="attendance-row exception-row">
                   <span>{ex.dateCreated}</span>
                   <span>{ex.eventDate}</span>
-                  <span>{ex.parameter}</span>
+                  <span className="parameter-cell">{ex.parameter}</span>
                   <span>{ex.exceptionId}</span>
                   <span>
                     <span className={`attendance-status attendance-status-${ex.status.toLowerCase().replace(/[\s.]+/g, "-")}`}>
@@ -471,21 +293,29 @@ export function ExceptionSection({
                   <span>
                     <button 
                       className="attendance-apply-button" 
-                      type="button"
-                      onClick={() => handleViewDetails(ex.id)}
+                      onClick={() => { 
+                        const raw = exceptions.find(x => x.cr8b3_gwia_employee_exceptionsid === ex.id); 
+                        if (raw) { setSelectedEx(raw); setIsModalOpen(true); } 
+                      }}
                     >
                       Details
                     </button>
                   </span>
                 </article>
               ))}
+
+              {loadState === "ready" && mappedAndSortedExceptions.length === 0 && (
+                <div className="status-card table-status">
+                  <p className="status-title">No exceptions found.</p>
+                  <p className="status-copy">Try a different search or month to see records.</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         <div className="attendance-footer">
-          <div /> {/* Spacer */}
-          <button className="primary-button attendance-footer-button" type="button" onClick={onClose}>
+          <button className="primary-button attendance-footer-button" onClick={onClose}>
             Close
           </button>
         </div>
@@ -493,120 +323,113 @@ export function ExceptionSection({
 
       {isModalOpen && selectedEx && (
         <div className="modal-backdrop">
-          <div className="exception-details-modal">
-            <header className="exception-details-header">
-              <div className="header-brand">
-                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ffbd00' }}></div>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ff5f56' }}></div>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#27c93f' }}></div>
-                </div>
-                <span className="header-title-text" style={{ marginLeft: '12px' }}>Teramind Exception Details</span>
+          <section className="exception-modal-v4">
+            <header className="header-v4">
+              <p className="eyebrow-v4">EXCEPTION</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2>Exception Context</h2>
+                <button className="ghost-button" onClick={() => setIsModalOpen(false)} style={{ padding: '8px 24px', borderRadius: '10px' }}>
+                  Close
+                </button>
               </div>
-              <div className="header-user-info">
-                 <p>Name : {userName}</p>
-                 <p>Email : {userEmail}</p>
-              </div>
-              <button 
-                className="modal-close-icon" 
-                onClick={() => setIsModalOpen(false)}
-                title="Close"
-              >
-                &times;
-              </button>
             </header>
 
-            <div className="exception-details-body">
-              <div className="details-form-grid">
-                <div className="detail-field">
-                  <label>Employee Name</label>
-                  <div className="value-box">{userName}</div>
-                </div>
-                <div className="detail-field">
-                  <label>Gigmos ID</label>
-                  <div className="value-box">{userEmail}</div>
-                </div>
-                <div className="detail-field">
-                  <label>Date Created</label>
-                  <div className="value-box">{formatDisplayDate(selectedEx.cr8b3_gw_date || selectedEx.createdon)}</div>
-                </div>
-                <div className="detail-field">
-                  <label>Exception Parameter</label>
-                  <div className="value-box">{getParameterDisplay(selectedEx)}</div>
-                </div>
-                <div className="detail-field">
-                  <label>Event Date</label>
-                  <div className="value-box">{formatDisplayDate(selectedEx.cr8b3_gw_event_date)}</div>
-                </div>
-                <div className="detail-field">
-                  <label>Exception ID</label>
-                  <div className="value-box">{selectedEx.cr8b3_name || "—"}</div>
-                </div>
+            <div className="content-v4">
+              <div className="form-field-v4">
+                <span className="form-label-v4">Employee</span>
+                <div className="info-box-v4"><strong>{employeeName}</strong></div>
+              </div>
 
-                <div className="detail-field full-width">
-                  <label>Remarks</label>
-                  <textarea 
-                    className="value-box" 
-                    readOnly 
-                    value={selectedEx.cr8b3_gw_employee_comments || ""}
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                <div className="form-field-v4">
+                  <span className="form-label-v4">Request Date</span>
+                  <div className="info-box-v4"><strong>{formatDisplayDate(selectedEx.cr8b3_gw_date || selectedEx.createdon)}</strong></div>
                 </div>
+                <div className="form-field-v4">
+                  <span className="form-label-v4">Event Date</span>
+                  <div className="info-box-v4"><strong>{formatDisplayDate(selectedEx.cr8b3_gw_event_date)}</strong></div>
+                </div>
+              </div>
 
-                <div className="detail-field full-width">
-                  <label>Attachments*</label>
-                  {selectedEx.cr8b3_gw_attachments ? (
-                    <div className="attachments-list">
-                      <div style={{ width: '100%', marginBottom: '10px' }}>
-                        <span className="status-badge-detail" style={{ fontSize: '0.75rem', background: '#e3f2fd', color: '#1976d2', padding: '4px 12px' }}>
-                           Format: Binary Stream
-                        </span>
-                      </div>
-                      <button 
-                        className="attachment-item" 
-                        onClick={() => handleDownloadAttachment(selectedEx)}
-                        style={{ background: 'white', cursor: 'pointer', border: '1px solid #e0e0e0', width: '100%', justifyContent: 'flex-start' }}
-                      >
-                        <span className="attachment-icon">📄</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
-                           <span style={{ fontWeight: 600 }}>{selectedEx.cr8b3_gw_attachments_name || "attachment"}</span>
-                           <span style={{ fontSize: '0.75rem', color: '#777' }}>Native Dataverse Storage (PUT Stream)</span>
-                        </div>
+              <div className="form-field-v4">
+                 <span className="form-label-v4">Exception Parameter *</span>
+                 <div className="info-box-v4 parameter-box">
+                    <strong>{getParameterDisplay(selectedEx)}</strong>
+                 </div>
+              </div>
+
+              <div className="form-field-v4">
+                <span className="form-label-v4">Employee Remarks *</span>
+                <div className="remarks-area-v4">
+                  {selectedEx.cr8b3_gw_employee_comments || "No comments provided."}
+                </div>
+              </div>
+
+              <div className="form-field-v4">
+                <span className="form-label-v4">HR / Auditor Comment</span>
+                <div className="remarks-area-v4" style={{ minHeight: '80px', background: '#f8fafc', borderLeft: '4px solid #94a3b8' }}>
+                  {selectedEx.cr8b3_gw_hr_comments || "Awaiting administrative review."}
+                </div>
+              </div>
+
+              <div className="form-field-v4">
+                <span className="form-label-v4">Attachment</span>
+                <div className="evidence-dashed-v4">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.9rem' }}>
+                      {selectedEx.cr8b3_gw_attachments ? selectedEx.cr8b3_gw_attachments_name : "No file attached."}
+                    </p>
+                    {selectedEx.cr8b3_gw_attachments && (
+                      <button className="ghost-button" onClick={() => handleDownloadAttachment(selectedEx)} style={{ padding: '6px 16px', fontSize: '0.85rem' }}>
+                        Download File
                       </button>
-                    </div>
-                  ) : (
-                    <div className="value-box" style={{ background: '#f5f5f5', fontStyle: 'italic' }}>
-                      No attachments uploaded.
+                    )}
+                  </div>
+
+                  {selectedEx.cr8b3_gw_attachments && (
+                    <div className="preview-container" onClick={() => handlePreview(selectedEx)} style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                      <img 
+                        src={`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/display?recordId=${selectedEx.cr8b3_gwia_employee_exceptionsid}`} 
+                        alt="Evidence" 
+                      />
                     </div>
                   )}
-                </div>
-
-                <div className="detail-field">
-                  <label>Status</label>
-                  <div>
-                    <span className="status-badge-detail">
-                      {getStatusDisplay(selectedEx)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="detail-field full-width">
-                  <label>HR Comments</label>
-                  <div className="hr-comments-box">
-                    {selectedEx.cr8b3_gw_hr_comments || ""}
-                  </div>
                 </div>
               </div>
             </div>
 
-            <footer className="exception-details-footer">
-              <button 
-                className="close-btn-primary" 
-                onClick={() => setIsModalOpen(false)}
-              >
-                Close
+            <footer className="footer-v4">
+              <div className="status-indicator-v4">
+                 <span className="form-label-v4">Status:</span>
+                 <span className={`attendance-status attendance-status-${getStatusDisplay(selectedEx).toLowerCase().replace(/[\s.]+/g, "-")}`} style={{ margin: 0 }}>
+                    {getStatusDisplay(selectedEx)}
+                 </span>
+              </div>
+              <button className="primary-button" onClick={() => setIsModalOpen(false)} style={{ padding: '12px 48px', borderRadius: '12px' }}>
+                Done
               </button>
             </footer>
-          </div>
+          </section>
+        </div>
+      )}
+
+      {isPreviewOpen && selectedEx && (
+        <div className="modal-backdrop preview-backdrop">
+           <div className="full-preview-container">
+              <header className="preview-header">
+                 <div>
+                   <p className="eyebrow">Evidence Viewer</p>
+                   <h2>{selectedEx.cr8b3_gw_attachments_name}</h2>
+                 </div>
+                 <button className="preview-close" onClick={() => setIsPreviewOpen(false)}>&times;</button>
+              </header>
+              <div className="preview-body">
+                 <img 
+                    src={`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/display?recordId=${selectedEx.cr8b3_gwia_employee_exceptionsid}`} 
+                    alt="Preview" 
+                 />
+              </div>
+           </div>
         </div>
       )}
     </section>
